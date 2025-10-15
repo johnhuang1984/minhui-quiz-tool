@@ -1,0 +1,836 @@
+import random
+import json
+from typing import List, Dict, Tuple
+
+# 题库数据（基于文档整理，涵盖8大类核心题目，每类选取典型题目示例，完整题库可按此格式扩展）
+QUESTION_BANK = {
+    "会章知识判断题": [
+        {
+            "id": 1,
+            "question": "民进的组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。",
+            "options": ["正确", "错误"],
+            "answer": "正确",
+            "basis": "民进会章第一章工作总则第九条规定：组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。（）"
+        },
+        {
+            "id": 2,
+            "question": "民进是政党，只能从事与政治直接相关的工作。",
+            "options": ["正确", "错误"],
+            "answer": "错误",
+            "basis": "从民进的八大基本任务可以看到，民进的工作包括了经济、政治、文化、社会、生态、祖国统一、对外交流、人才培养等方方面面。民进会章第一章第五条规定，本会以服务为宗旨，面向社会，以人为本，关注民生，突出特色，开展社会服务工作，为人民群众多办实事。（）"
+        }
+    ],
+    "会章知识单选题": [
+        {
+            "id": 1,
+            "question": "最新审议通过《中国民主促进会第十二次全国代表大会关于〈中国民主促进会章程〉修正案的决议》的时间是（）年12月19日。",
+            "options": ["A、2022", "B、2012", "C、2017"],
+            "answer": "A、2022",
+            "basis": "中国民主促进会章程（中国民主促进会第十三次全国代表大会部分修改，2022年12月19日通过）（）"
+        },
+        {
+            "id": 2,
+            "question": "中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治（）性质的政党。",
+            "options": ["A、团体", "B、派别", "C、联盟", "D、组织"],
+            "answer": "C、联盟",
+            "basis": "民进会章总纲规定，中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治联盟性质的政党。（）"
+        }
+    ],
+    "重要会议判断题": [
+        {
+            "id": 1,
+            "question": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆）正式宣告成立，大会地点就在现图书馆二楼的阅览室。",
+            "options": ["正确", "错误"],
+            "answer": "错误",
+            "basis": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆会心楼）正式宣告成立，会场是在图书馆院内右侧的会心楼内。（）"
+        },
+        {
+            "id": 2,
+            "question": "1979年10月，民进召开第四次全国代表大会，通过了新的章程，明确了“中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派”。",
+            "options": ["正确", "错误"],
+            "answer": "正确",
+            "basis": "1979年10月，民进第四次全国代表大会通过的新章程规定：“中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派，是以从事文化教育工作为主的社会主义知识分子和拥护社会主义的爱国者的政治联盟，是为社会主义服务的政治力量。”（）"
+        }
+    ],
+    "重要史实单选题": [
+        {
+            "id": 1,
+            "question": "中国民主促进会成立的时间和地点是（）。",
+            "options": ["A、1945年12月30日 南京", "B、1945年12月30日 上海", "C、1945年12月30日 重庆", "D、1946年1月2日 上海"],
+            "answer": "B、1945年12月30日 上海",
+            "basis": "1945年12月30日，中国民主促进会在上海正式宣告成立。1946年1月2日是民进第二次会员大会开会的时间。（）"
+        },
+        {
+            "id": 2,
+            "question": "1946年6月23日，上海人民反内战暨欢送和平请愿团赴京大会后，请愿团在南京下关遭到国民党特务围攻殴打，这一事件被称为（）。",
+            "options": ["A、较场口惨案", "B、下关事件", "C、五二〇惨案", "D、一二·一惨案"],
+            "answer": "B、下关事件",
+            "basis": "1946年6月23日，以民进马叙伦、雷洁琼等11人为代表的请愿团赴南京和平请愿，在南京下关车站遭到特务暴徒袭击，马叙伦、雷洁琼等均被严重殴伤，这就是震惊中外的下关事件（民进会史称下关事件）。（）"
+        }
+    ],
+    "重要人物判断题": [
+        {
+            "id": 1,
+            "question": "周建人是我国现代妇女解放运动的先驱者之一。",
+            "options": ["正确", "错误"],
+            "answer": "正确",
+            "basis": "1920年8月，周建人与胡愈之、周作人等17人发起组织“妇女问题研究会”，并在北京晨报副刊上发表了《妇女问题研究宣言》，他是我国现代妇女解放运动的先驱者之一。（）"
+        },
+        {
+            "id": 2,
+            "question": "雷洁琼曾出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，为香港和澳门回归祖国做出了贡献。",
+            "options": ["正确", "错误"],
+            "answer": "正确",
+            "basis": "1985年，雷洁琼出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，多次亲赴港澳广泛听取各界人士意见，还参加了香港特别行政区区旗、区徽评选委员会的工作。（）"
+        }
+    ],
+    "参政议政单选题": [
+        {
+            "id": 1,
+            "question": "全国人大常委会正式批准每年9月10日为教师节的时间是（）。",
+            "options": ["A、1981年", "B、1985年", "C、1994年", "D、2000年"],
+            "answer": "B、1985年",
+            "basis": "1985年1月21日，第六届全国人民代表大会常务委员会第九次会议通过了国务院提请审议的关于建立“教师节”的议案，正式批准每年的9月10日为教师节。（）"
+        }
+    ],
+    "社会服务单选题": [
+        {
+            "id": 1,
+            "question": "民进中央设立社会服务部这个重要机构的时间是（）。",
+            "options": ["A、1985年", "B、1989年", "C、1991年", "D、1994年"],
+            "answer": "B、1989年",
+            "basis": "1989年4月，民进中央设立了社会服务部，该部是民进开展社会服务工作的重要机构。（）"
+        }
+    ],
+    "上海民进单选题": [
+        {
+            "id": 1,
+            "question": "民进上海市分会成立的时间是（）。",
+            "options": ["A、1945年12月30日", "B、1949年6月19日", "C、1950年9月10日", "D、1999年6月17日"],
+            "answer": "B、1949年6月19日",
+            "basis": "1949年6月19日，经总部批准，上海分会正式成立，谢仁冰出任主任理事，赵朴初为副主任理事。（）"
+        }
+    ]
+}
+
+# 答题记录与收藏数据
+user_data = {
+    "answer_records": [],  # 答题记录：[{"question_id": 1, "category": "会章知识判断题", "user_answer": "正确", "is_correct": True, "answer_time": "2024-xx-xx xx:xx"}]
+    "collected_questions": []  # 收藏题目：[{"question_id": 1, "category": "会章知识判断题", "question": "..."}]
+}
+
+def load_user_data():
+    """加载用户答题数据（模拟本地存储）"""
+    global user_data
+    try:
+        with open("user_data.json", "r", encoding="utf-8") as f:
+            user_data = json.load(f)
+    except FileNotFoundError:
+        # 首次使用初始化数据
+        save_user_data()
+
+def save_user_data():
+    """保存用户答题数据到本地"""
+    with open("user_data.json", "w", encoding="utf-8") as f:
+        json.dump(user_data, f, ensure_ascii=False, indent=2)
+
+def display_main_menu() -> str:
+    """显示主菜单，返回用户选择"""
+    print("\n" + "="*50)
+    print("        中国民主促进会会史知识答题程序")
+    print("="*50)
+    print("1. 专项答题（按题型分类）")
+    print("2. 随机答题（全题库随机抽取）")
+    print("3. 模拟测试（限时满分测试）")
+    print("4. 查看答题记录")
+    print("5. 查看收藏题目")
+    print("6. 退出程序")
+    print("="*50)
+    return input("请输入您的选择（1-6）：")
+
+def display_category_menu() -> str:
+    """显示专项答题类别菜单，返回用户选择的类别"""
+    categories = list(QUESTION_BANK.keys())
+    print("\n" + "="*30)
+    print("        专项答题 - 选择题型类别")
+    print("="*30)
+    for i, category in enumerate(categories, 1):
+        print(f"{i}. {category}（共{len(QUESTION_BANK[category])}题）")
+    print("="*30)
+    while True:
+        choice = input(f"请输入类别编号（1-{len(categories)}）：")
+        if choice.isdigit() and 1 <= int(choice) <= len(categories):
+            return categories[int(choice)-1]
+        print("输入无效，请重新选择！")
+
+def get_question_by_category(category: str) -> List[Dict]:
+    """根据类别获取题目列表"""
+    return QUESTION_BANK[category]
+
+def get_random_questions(num: int) -> List[Tuple[str, Dict]]:
+    """从全题库随机获取指定数量的题目，返回（类别，题目）列表"""
+    all_questions = []
+    for category, questions in QUESTION_BANK.items():
+        for q in questions:
+            all_questions.append((category, q))
+    if num > len(all_questions):
+        num = len(all_questions)
+    return random.sample(all_questions, num)
+
+def get_simulate_test_questions() -> List[Tuple[str, Dict]]:
+    """获取模拟测试题目（每类选取2题，总分100分）"""
+    simulate_questions = []
+    for category, questions in QUESTION_BANK.items():
+        # 每类选取2题，不足2题则全部选取
+        selected = random.sample(questions, min(2, len(questions)))
+        for q in selected:
+            simulate_questions.append((category, q))
+    return simulate_questions
+
+def answer_question(category: str, question: Dict) -> Tuple[bool, str]:
+    """展示题目并获取用户答案，返回（是否正确，用户答案）"""
+    print(f"\n【{category}】")
+    print(f"题目：{question['question']}")
+    print("选项：")
+    for opt in question["options"]:
+        print(f"  {opt}")
+    
+    # 获取用户答案
+    while True:
+        user_ans = input("请输入您的答案（直接输入选项内容，如'正确'或'A、2022'）：")
+        if user_ans in question["options"]:
+            break
+        print(f"输入无效！请从选项中选择（{', '.join(question['options'])}）")
+    
+    # 判断是否正确
+    is_correct = (user_ans == question["answer"])
+    print(f"\n{'✅ 回答正确！' if is_correct else '❌ 回答错误！'}")
+    print(f"正确答案：{question['answer']}")
+    print(f"依据：{question['basis']}")
+    
+    # 询问是否收藏题目
+    while True:
+        collect_choice = input("是否将此题加入收藏？（y/n）：").lower()
+        if collect_choice in ["y", "n"]:
+            if collect_choice == "y":
+                collected = {
+                    "question_id": question["id"],
+                    "category": category,
+                    "question": question["question"],
+                    "answer": question["answer"],
+                    "basis": question["basis"]
+                }
+                # 避免重复收藏
+                if not any(c["question_id"] == question["id"] and c["category"] == category for c in user_data["collected_questions"]):
+                    user_data["collected_questions"].append(collected)
+                    save_user_data()
+                    print("已成功收藏此题！")
+                else:
+                    print("此题已在收藏夹中，无需重复收藏！")
+            break
+        print("输入无效，请输入'y'或'n'！")
+    
+    return is_correct, user_ans
+
+def run_special_answer():
+    """运行专项答题模式"""
+    category = display_category_menu()
+    questions = get_question_by_category(category)
+    print(f"\n您选择了【{category}】，共{len(questions)}题，将按顺序答题！")
+    input("按下回车键开始答题...")
+    
+    correct_count = 0
+    for i, question in enumerate(questions, 1):
+        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
+        is_correct, user_ans = answer_question(category, question)
+        if is_correct:
+            correct_count += 1
+        
+        # 记录答题结果
+        record = {
+            "question_id": question["id"],
+            "category": category,
+            "user_answer": user_ans,
+            "is_correct": is_correct,
+            "answer_time": "2024-xx-xx xx:xx"  # 实际场景可替换为当前时间
+        }
+        user_data["answer_records"].append(record)
+        save_user_data()
+        
+        # 最后一题不显示"下一题"提示
+        if i < len(questions):
+            input("按下回车键继续下一题...")
+    
+    # 展示答题结果
+    print(f"\n" + "="*50)
+    print(f"        专项答题完成！")
+    print(f"答题总数：{len(questions)}题")
+    print(f"正确数量：{correct_count}题")
+    print(f"正确率：{correct_count/len(questions)*100:.1f}%")
+    print("="*50)
+
+def run_random_answer():
+    """运行随机答题模式"""
+    while True:
+        num_input = input("\n请输入随机答题数量（1-20）：")
+        if num_input.isdigit() and 1 <= int(num_input) <= 20:
+            num = int(num_input)
+            break
+        print("输入无效，请输入1-20之间的整数！")
+    
+    random_questions = get_random_questions(num)
+    print(f"\n已从全题库随机抽取{num}题，开始答题！")
+    input("按下回车键开始答题...")
+    
+    correct_count = 0
+    for i, (category, question) in enumerate(random_questions, 1):
+        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
+        is_correct, user_ans = answer_question(category, question)
+        if is_correct:
+            correct_count += 1
+        
+        # 记录答题结果
+        record = {
+            "question_id": question["id"],
+            "category": category,
+            "user_answer": user_ans,
+            "is_correct": is_correct,
+            "answer_time": "2024-xx-xx xx:xx"
+        }
+        user_data["answer_records"].append(record)
+        save_user_data()
+        
+        if i < num:
+            input("按下回车键继续下一题...")
+    
+    # 展示答题结果
+    print(f"\n" + "="*50)
+    print(f"        随机答题完成！")
+    print(f"答题总数：{num}题")
+    print(f"正确数量：{correct_count}题")
+    print(f"正确率：{correct_count/num*100:.1f}%")
+    print("="*50)
+
+def run_simulate_test():
+    """运行模拟测试模式（限时60分钟，总分100分）"""
+    simulate_questions = get_simulate_test_questions()
+    total_score = 100
+    score_per_question = total_score / len(simulate_questions)
+    print(f"\n" + "="*50)
+    print("        模拟测试（限时60分钟，总分100分）")
+    print(f"题目数量：{len(simulate_questions)}题，每题{score_per_question:.1f}分")
+    print("="*50)
+    input("按下回车键开始测试...（请在60分钟内完成）")
+    
+    correct_count = 0
+    for i, (category, question) in enumerate(simulate_questions, 1):
+        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
+        is_correct, user_ans = answer_question(category, question)
+        if is_correct:
+            correct_count += 1
+        
+        # 记录答题结果
+        record = {
+            "question_id": question["id"],
+            "category": category,
+            "user_answer": user_ans,
+            "is_correct": is_correct,
+            "answer_time": "2024-xx-xx xx:xx",
+            "is_simulate_test": True
+        }
+        user_data["answer_records"].append(record)
+        save_user_data()
+        
+        if i < len(simulate_questions):
+            input("按下回车键继续下一题...")
+    
+    # 计算得分并展示结果
+    final_score = correct_count * score_per_question
+    print(f"\n" + "="*50)
+    print(f"        模拟测试完成！")
+    print(f"答题总数：{len(simulate_questions)}题")
+    print(f"正确数量：{correct_count}题")
+    print(f"最终得分：{final_score:.1f}分（满分100分）")
+    print(f"等级评价：{'优秀' if final_score >= 90 else '良好' if final_score >= 80 else '合格' if final_score >= 60 else '不合格'}")
+    print("="*50)
+
+def display_answer_records():
+    """展示用户答题记录"""
+    records = user_data["answer_records"]
+    if not records:
+        print("\n您暂无答题记录，请先进行答题！")
+        return
+    
+    print(f"\n" + "="*50)
+    print(f"        我的答题记录（共{len(records)}条）")
+    print("="*50)
+    # 按答题时间倒序排列（模拟时间排序）
+    sorted_records = sorted(records, key=lambda x: x["answer_time"], reverse=True)
+    
+    for i, record in enumerate(sorted_records, 1):
+        correct_mark = "✅" if record["is_correct"] else "❌"
+        simulate_mark = "【模拟测试】" if record.get("is_simulate_test", False) else ""
+        print(f"{i}. {simulate_mark}{record['category']}")
+        print(f"   题目ID：{record['question_id']} | 我的答案：{record['user_answer']} | {correct_mark}")
+        print(f"   答题时间：{record['answer_time']}")
+        print("-"*30)
+
+def display_collected_questions():
+    """展示收藏题目"""
+    collected = user_data["collected_questions"]
+    if not collected:
+        print("\n您暂无收藏题目，请在答题时选择收藏！")
+        return
+    
+    print(f"\n" + "="*50)
+    print(f"        我的收藏题目（共{len(collected)}题）")
+    print("="*50)
+    for i, q in enumerate(collected, 1):
+        print(f"{i}. 【{q['category']}】")
+        print(f"   题目：{q['question']}")
+        print(f"   正确答案：{q['answer']}")
+        print(f"   依据：{q['basis']}")
+        print("-"*30)
+
+def main():
+    """程序主入口"""
+    load_user_data()
+    while True:
+        choice = display_main_menu()
+        if choice == "1":
+            run_special_answer()
+        elif choice == "2":
+            run_random_answer()
+        elif choice == "3":
+            run_simulate_test()
+        elif choice == "4":
+            display_answer_records()
+        elif choice == "5":
+            display_collected_questions()
+        elif choice == "6":
+            print("\n感谢使用民进会史知识答题程序，再见！")
+            save_user_data()
+            break
+        else:
+            print("输入无效，请重新选择（1-6）！")
+
+if __name__ == "__main__":
+    main()
+import random
+import json
+from typing import List, Dict, Tuple
+
+# 题库数据（基于文档整理，涵盖8大类核心题目，每类选取典型题目示例，完整题库可按此格式扩展）
+QUESTION_BANK = {
+    "会章知识判断题": [
+        {
+            "id": 1,
+            "question": "民进的组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。",
+            "options": ["正确", "错误"],
+            "answer": "正确",
+            "basis": "民进会章第一章工作总则第九条规定：组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。（）"
+        },
+        {
+            "id": 2,
+            "question": "民进是政党，只能从事与政治直接相关的工作。",
+            "options": ["正确", "错误"],
+            "answer": "错误",
+            "basis": "从民进的八大基本任务可以看到，民进的工作包括了经济、政治、文化、社会、生态、祖国统一、对外交流、人才培养等方方面面。民进会章第一章第五条规定，本会以服务为宗旨，面向社会，以人为本，关注民生，突出特色，开展社会服务工作，为人民群众多办实事。（）"
+        }
+    ],
+    "会章知识单选题": [
+        {
+            "id": 1,
+            "question": "最新审议通过《中国民主促进会第十二次全国代表大会关于〈中国民主促进会章程〉修正案的决议》的时间是（）年12月19日。",
+            "options": ["A、2022", "B、2012", "C、2017"],
+            "answer": "A、2022",
+            "basis": "中国民主促进会章程（中国民主促进会第十三次全国代表大会部分修改，2022年12月19日通过）（）"
+        },
+        {
+            "id": 2,
+            "question": "中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治（）性质的政党。",
+            "options": ["A、团体", "B、派别", "C、联盟", "D、组织"],
+            "answer": "C、联盟",
+            "basis": "民进会章总纲规定，中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治联盟性质的政党。（）"
+        }
+    ],
+    "重要会议判断题": [
+        {
+            "id": 1,
+            "question": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆）正式宣告成立，大会地点就在现图书馆二楼的阅览室。",
+            "options": ["正确", "错误"],
+            "answer": "错误",
+            "basis": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆会心楼）正式宣告成立，会场是在图书馆院内右侧的会心楼内。（）"
+        },
+        {
+            "id": 2,
+            "question": "1979年10月，民进召开第四次全国代表大会，通过了新的章程，明确了“中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派”。",
+            "options": ["正确", "错误"],
+            "answer": "正确",
+            "basis": "1979年10月，民进第四次全国代表大会通过的新章程规定：“中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派，是以从事文化教育工作为主的社会主义知识分子和拥护社会主义的爱国者的政治联盟，是为社会主义服务的政治力量。”（）"
+        }
+    ],
+    "重要史实单选题": [
+        {
+            "id": 1,
+            "question": "中国民主促进会成立的时间和地点是（）。",
+            "options": ["A、1945年12月30日 南京", "B、1945年12月30日 上海", "C、1945年12月30日 重庆", "D、1946年1月2日 上海"],
+            "answer": "B、1945年12月30日 上海",
+            "basis": "1945年12月30日，中国民主促进会在上海正式宣告成立。1946年1月2日是民进第二次会员大会开会的时间。（）"
+        },
+        {
+            "id": 2,
+            "question": "1946年6月23日，上海人民反内战暨欢送和平请愿团赴京大会后，请愿团在南京下关遭到国民党特务围攻殴打，这一事件被称为（）。",
+            "options": ["A、较场口惨案", "B、下关事件", "C、五二〇惨案", "D、一二·一惨案"],
+            "answer": "B、下关事件",
+            "basis": "1946年6月23日，以民进马叙伦、雷洁琼等11人为代表的请愿团赴南京和平请愿，在南京下关车站遭到特务暴徒袭击，马叙伦、雷洁琼等均被严重殴伤，这就是震惊中外的下关事件（民进会史称下关事件）。（）"
+        }
+    ],
+    "重要人物判断题": [
+        {
+            "id": 1,
+            "question": "周建人是我国现代妇女解放运动的先驱者之一。",
+            "options": ["正确", "错误"],
+            "answer": "正确",
+            "basis": "1920年8月，周建人与胡愈之、周作人等17人发起组织“妇女问题研究会”，并在北京晨报副刊上发表了《妇女问题研究宣言》，他是我国现代妇女解放运动的先驱者之一。（）"
+        },
+        {
+            "id": 2,
+            "question": "雷洁琼曾出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，为香港和澳门回归祖国做出了贡献。",
+            "options": ["正确", "错误"],
+            "answer": "正确",
+            "basis": "1985年，雷洁琼出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，多次亲赴港澳广泛听取各界人士意见，还参加了香港特别行政区区旗、区徽评选委员会的工作。（）"
+        }
+    ],
+    "参政议政单选题": [
+        {
+            "id": 1,
+            "question": "全国人大常委会正式批准每年9月10日为教师节的时间是（）。",
+            "options": ["A、1981年", "B、1985年", "C、1994年", "D、2000年"],
+            "answer": "B、1985年",
+            "basis": "1985年1月21日，第六届全国人民代表大会常务委员会第九次会议通过了国务院提请审议的关于建立“教师节”的议案，正式批准每年的9月10日为教师节。（）"
+        }
+    ],
+    "社会服务单选题": [
+        {
+            "id": 1,
+            "question": "民进中央设立社会服务部这个重要机构的时间是（）。",
+            "options": ["A、1985年", "B、1989年", "C、1991年", "D、1994年"],
+            "answer": "B、1989年",
+            "basis": "1989年4月，民进中央设立了社会服务部，该部是民进开展社会服务工作的重要机构。（）"
+        }
+    ],
+    "上海民进单选题": [
+        {
+            "id": 1,
+            "question": "民进上海市分会成立的时间是（）。",
+            "options": ["A、1945年12月30日", "B、1949年6月19日", "C、1950年9月10日", "D、1999年6月17日"],
+            "answer": "B、1949年6月19日",
+            "basis": "1949年6月19日，经总部批准，上海分会正式成立，谢仁冰出任主任理事，赵朴初为副主任理事。（）"
+        }
+    ]
+}
+
+# 答题记录与收藏数据
+user_data = {
+    "answer_records": [],  # 答题记录：[{"question_id": 1, "category": "会章知识判断题", "user_answer": "正确", "is_correct": True, "answer_time": "2024-xx-xx xx:xx"}]
+    "collected_questions": []  # 收藏题目：[{"question_id": 1, "category": "会章知识判断题", "question": "..."}]
+}
+
+def load_user_data():
+    """加载用户答题数据（模拟本地存储）"""
+    global user_data
+    try:
+        with open("user_data.json", "r", encoding="utf-8") as f:
+            user_data = json.load(f)
+    except FileNotFoundError:
+        # 首次使用初始化数据
+        save_user_data()
+
+def save_user_data():
+    """保存用户答题数据到本地"""
+    with open("user_data.json", "w", encoding="utf-8") as f:
+        json.dump(user_data, f, ensure_ascii=False, indent=2)
+
+def display_main_menu() -> str:
+    """显示主菜单，返回用户选择"""
+    print("\n" + "="*50)
+    print("        中国民主促进会会史知识答题程序")
+    print("="*50)
+    print("1. 专项答题（按题型分类）")
+    print("2. 随机答题（全题库随机抽取）")
+    print("3. 模拟测试（限时满分测试）")
+    print("4. 查看答题记录")
+    print("5. 查看收藏题目")
+    print("6. 退出程序")
+    print("="*50)
+    return input("请输入您的选择（1-6）：")
+
+def display_category_menu() -> str:
+    """显示专项答题类别菜单，返回用户选择的类别"""
+    categories = list(QUESTION_BANK.keys())
+    print("\n" + "="*30)
+    print("        专项答题 - 选择题型类别")
+    print("="*30)
+    for i, category in enumerate(categories, 1):
+        print(f"{i}. {category}（共{len(QUESTION_BANK[category])}题）")
+    print("="*30)
+    while True:
+        choice = input(f"请输入类别编号（1-{len(categories)}）：")
+        if choice.isdigit() and 1 <= int(choice) <= len(categories):
+            return categories[int(choice)-1]
+        print("输入无效，请重新选择！")
+
+def get_question_by_category(category: str) -> List[Dict]:
+    """根据类别获取题目列表"""
+    return QUESTION_BANK[category]
+
+def get_random_questions(num: int) -> List[Tuple[str, Dict]]:
+    """从全题库随机获取指定数量的题目，返回（类别，题目）列表"""
+    all_questions = []
+    for category, questions in QUESTION_BANK.items():
+        for q in questions:
+            all_questions.append((category, q))
+    if num > len(all_questions):
+        num = len(all_questions)
+    return random.sample(all_questions, num)
+
+def get_simulate_test_questions() -> List[Tuple[str, Dict]]:
+    """获取模拟测试题目（每类选取2题，总分100分）"""
+    simulate_questions = []
+    for category, questions in QUESTION_BANK.items():
+        # 每类选取2题，不足2题则全部选取
+        selected = random.sample(questions, min(2, len(questions)))
+        for q in selected:
+            simulate_questions.append((category, q))
+    return simulate_questions
+
+def answer_question(category: str, question: Dict) -> Tuple[bool, str]:
+    """展示题目并获取用户答案，返回（是否正确，用户答案）"""
+    print(f"\n【{category}】")
+    print(f"题目：{question['question']}")
+    print("选项：")
+    for opt in question["options"]:
+        print(f"  {opt}")
+    
+    # 获取用户答案
+    while True:
+        user_ans = input("请输入您的答案（直接输入选项内容，如'正确'或'A、2022'）：")
+        if user_ans in question["options"]:
+            break
+        print(f"输入无效！请从选项中选择（{', '.join(question['options'])}）")
+    
+    # 判断是否正确
+    is_correct = (user_ans == question["answer"])
+    print(f"\n{'✅ 回答正确！' if is_correct else '❌ 回答错误！'}")
+    print(f"正确答案：{question['answer']}")
+    print(f"依据：{question['basis']}")
+    
+    # 询问是否收藏题目
+    while True:
+        collect_choice = input("是否将此题加入收藏？（y/n）：").lower()
+        if collect_choice in ["y", "n"]:
+            if collect_choice == "y":
+                collected = {
+                    "question_id": question["id"],
+                    "category": category,
+                    "question": question["question"],
+                    "answer": question["answer"],
+                    "basis": question["basis"]
+                }
+                # 避免重复收藏
+                if not any(c["question_id"] == question["id"] and c["category"] == category for c in user_data["collected_questions"]):
+                    user_data["collected_questions"].append(collected)
+                    save_user_data()
+                    print("已成功收藏此题！")
+                else:
+                    print("此题已在收藏夹中，无需重复收藏！")
+            break
+        print("输入无效，请输入'y'或'n'！")
+    
+    return is_correct, user_ans
+
+def run_special_answer():
+    """运行专项答题模式"""
+    category = display_category_menu()
+    questions = get_question_by_category(category)
+    print(f"\n您选择了【{category}】，共{len(questions)}题，将按顺序答题！")
+    input("按下回车键开始答题...")
+    
+    correct_count = 0
+    for i, question in enumerate(questions, 1):
+        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
+        is_correct, user_ans = answer_question(category, question)
+        if is_correct:
+            correct_count += 1
+        
+        # 记录答题结果
+        record = {
+            "question_id": question["id"],
+            "category": category,
+            "user_answer": user_ans,
+            "is_correct": is_correct,
+            "answer_time": "2024-xx-xx xx:xx"  # 实际场景可替换为当前时间
+        }
+        user_data["answer_records"].append(record)
+        save_user_data()
+        
+        # 最后一题不显示"下一题"提示
+        if i < len(questions):
+            input("按下回车键继续下一题...")
+    
+    # 展示答题结果
+    print(f"\n" + "="*50)
+    print(f"        专项答题完成！")
+    print(f"答题总数：{len(questions)}题")
+    print(f"正确数量：{correct_count}题")
+    print(f"正确率：{correct_count/len(questions)*100:.1f}%")
+    print("="*50)
+
+def run_random_answer():
+    """运行随机答题模式"""
+    while True:
+        num_input = input("\n请输入随机答题数量（1-20）：")
+        if num_input.isdigit() and 1 <= int(num_input) <= 20:
+            num = int(num_input)
+            break
+        print("输入无效，请输入1-20之间的整数！")
+    
+    random_questions = get_random_questions(num)
+    print(f"\n已从全题库随机抽取{num}题，开始答题！")
+    input("按下回车键开始答题...")
+    
+    correct_count = 0
+    for i, (category, question) in enumerate(random_questions, 1):
+        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
+        is_correct, user_ans = answer_question(category, question)
+        if is_correct:
+            correct_count += 1
+        
+        # 记录答题结果
+        record = {
+            "question_id": question["id"],
+            "category": category,
+            "user_answer": user_ans,
+            "is_correct": is_correct,
+            "answer_time": "2024-xx-xx xx:xx"
+        }
+        user_data["answer_records"].append(record)
+        save_user_data()
+        
+        if i < num:
+            input("按下回车键继续下一题...")
+    
+    # 展示答题结果
+    print(f"\n" + "="*50)
+    print(f"        随机答题完成！")
+    print(f"答题总数：{num}题")
+    print(f"正确数量：{correct_count}题")
+    print(f"正确率：{correct_count/num*100:.1f}%")
+    print("="*50)
+
+def run_simulate_test():
+    """运行模拟测试模式（限时60分钟，总分100分）"""
+    simulate_questions = get_simulate_test_questions()
+    total_score = 100
+    score_per_question = total_score / len(simulate_questions)
+    print(f"\n" + "="*50)
+    print("        模拟测试（限时60分钟，总分100分）")
+    print(f"题目数量：{len(simulate_questions)}题，每题{score_per_question:.1f}分")
+    print("="*50)
+    input("按下回车键开始测试...（请在60分钟内完成）")
+    
+    correct_count = 0
+    for i, (category, question) in enumerate(simulate_questions, 1):
+        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
+        is_correct, user_ans = answer_question(category, question)
+        if is_correct:
+            correct_count += 1
+        
+        # 记录答题结果
+        record = {
+            "question_id": question["id"],
+            "category": category,
+            "user_answer": user_ans,
+            "is_correct": is_correct,
+            "answer_time": "2024-xx-xx xx:xx",
+            "is_simulate_test": True
+        }
+        user_data["answer_records"].append(record)
+        save_user_data()
+        
+        if i < len(simulate_questions):
+            input("按下回车键继续下一题...")
+    
+    # 计算得分并展示结果
+    final_score = correct_count * score_per_question
+    print(f"\n" + "="*50)
+    print(f"        模拟测试完成！")
+    print(f"答题总数：{len(simulate_questions)}题")
+    print(f"正确数量：{correct_count}题")
+    print(f"最终得分：{final_score:.1f}分（满分100分）")
+    print(f"等级评价：{'优秀' if final_score >= 90 else '良好' if final_score >= 80 else '合格' if final_score >= 60 else '不合格'}")
+    print("="*50)
+
+def display_answer_records():
+    """展示用户答题记录"""
+    records = user_data["answer_records"]
+    if not records:
+        print("\n您暂无答题记录，请先进行答题！")
+        return
+    
+    print(f"\n" + "="*50)
+    print(f"        我的答题记录（共{len(records)}条）")
+    print("="*50)
+    # 按答题时间倒序排列（模拟时间排序）
+    sorted_records = sorted(records, key=lambda x: x["answer_time"], reverse=True)
+    
+    for i, record in enumerate(sorted_records, 1):
+        correct_mark = "✅" if record["is_correct"] else "❌"
+        simulate_mark = "【模拟测试】" if record.get("is_simulate_test", False) else ""
+        print(f"{i}. {simulate_mark}{record['category']}")
+        print(f"   题目ID：{record['question_id']} | 我的答案：{record['user_answer']} | {correct_mark}")
+        print(f"   答题时间：{record['answer_time']}")
+        print("-"*30)
+
+def display_collected_questions():
+    """展示收藏题目"""
+    collected = user_data["collected_questions"]
+    if not collected:
+        print("\n您暂无收藏题目，请在答题时选择收藏！")
+        return
+    
+    print(f"\n" + "="*50)
+    print(f"        我的收藏题目（共{len(collected)}题）")
+    print("="*50)
+    for i, q in enumerate(collected, 1):
+        print(f"{i}. 【{q['category']}】")
+        print(f"   题目：{q['question']}")
+        print(f"   正确答案：{q['answer']}")
+        print(f"   依据：{q['basis']}")
+        print("-"*30)
+
+def main():
+    """程序主入口"""
+    load_user_data()
+    while True:
+        choice = display_main_menu()
+        if choice == "1":
+            run_special_answer()
+        elif choice == "2":
+            run_random_answer()
+        elif choice == "3":
+            run_simulate_test()
+        elif choice == "4":
+            display_answer_records()
+        elif choice == "5":
+            display_collected_questions()
+        elif choice == "6":
+            print("\n感谢使用民进会史知识答题程序，再见！")
+            save_user_data()
+            break
+        else:
+            print("输入无效，请重新选择（1-6）！")
+
+if __name__ == "__main__":
+    main()
