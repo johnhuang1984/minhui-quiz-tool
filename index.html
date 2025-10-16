@@ -1,836 +1,2865 @@
-import random
-import json
-from typing import List, Dict, Tuple
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国民主促进会会史知识在线答题工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+    <!-- 头部标题 -->
+    <header class="bg-blue-700 text-white py-4 px-6 text-center shadow-lg">
+        <h1 class="text-2xl md:text-3xl font-bold">中国民主促进会会史知识在线答题工具</h1>
+        <p class="mt-2 text-sm md:text-base">基于《题库（237题）10.4.pdf》开发</p>
+    </header>
 
-# 题库数据（基于文档整理，涵盖8大类核心题目，每类选取典型题目示例，完整题库可按此格式扩展）
-QUESTION_BANK = {
-    "会章知识判断题": [
-        {
-            "id": 1,
-            "question": "民进的组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。",
-            "options": ["正确", "错误"],
-            "answer": "正确",
-            "basis": "民进会章第一章工作总则第九条规定：组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。（）"
-        },
-        {
-            "id": 2,
-            "question": "民进是政党，只能从事与政治直接相关的工作。",
-            "options": ["正确", "错误"],
-            "answer": "错误",
-            "basis": "从民进的八大基本任务可以看到，民进的工作包括了经济、政治、文化、社会、生态、祖国统一、对外交流、人才培养等方方面面。民进会章第一章第五条规定，本会以服务为宗旨，面向社会，以人为本，关注民生，突出特色，开展社会服务工作，为人民群众多办实事。（）"
-        }
-    ],
-    "会章知识单选题": [
-        {
-            "id": 1,
-            "question": "最新审议通过《中国民主促进会第十二次全国代表大会关于〈中国民主促进会章程〉修正案的决议》的时间是（）年12月19日。",
-            "options": ["A、2022", "B、2012", "C、2017"],
-            "answer": "A、2022",
-            "basis": "中国民主促进会章程（中国民主促进会第十三次全国代表大会部分修改，2022年12月19日通过）（）"
-        },
-        {
-            "id": 2,
-            "question": "中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治（）性质的政党。",
-            "options": ["A、团体", "B、派别", "C、联盟", "D、组织"],
-            "answer": "C、联盟",
-            "basis": "民进会章总纲规定，中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治联盟性质的政党。（）"
-        }
-    ],
-    "重要会议判断题": [
-        {
-            "id": 1,
-            "question": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆）正式宣告成立，大会地点就在现图书馆二楼的阅览室。",
-            "options": ["正确", "错误"],
-            "answer": "错误",
-            "basis": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆会心楼）正式宣告成立，会场是在图书馆院内右侧的会心楼内。（）"
-        },
-        {
-            "id": 2,
-            "question": "1979年10月，民进召开第四次全国代表大会，通过了新的章程，明确了“中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派”。",
-            "options": ["正确", "错误"],
-            "answer": "正确",
-            "basis": "1979年10月，民进第四次全国代表大会通过的新章程规定：“中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派，是以从事文化教育工作为主的社会主义知识分子和拥护社会主义的爱国者的政治联盟，是为社会主义服务的政治力量。”（）"
-        }
-    ],
-    "重要史实单选题": [
-        {
-            "id": 1,
-            "question": "中国民主促进会成立的时间和地点是（）。",
-            "options": ["A、1945年12月30日 南京", "B、1945年12月30日 上海", "C、1945年12月30日 重庆", "D、1946年1月2日 上海"],
-            "answer": "B、1945年12月30日 上海",
-            "basis": "1945年12月30日，中国民主促进会在上海正式宣告成立。1946年1月2日是民进第二次会员大会开会的时间。（）"
-        },
-        {
-            "id": 2,
-            "question": "1946年6月23日，上海人民反内战暨欢送和平请愿团赴京大会后，请愿团在南京下关遭到国民党特务围攻殴打，这一事件被称为（）。",
-            "options": ["A、较场口惨案", "B、下关事件", "C、五二〇惨案", "D、一二·一惨案"],
-            "answer": "B、下关事件",
-            "basis": "1946年6月23日，以民进马叙伦、雷洁琼等11人为代表的请愿团赴南京和平请愿，在南京下关车站遭到特务暴徒袭击，马叙伦、雷洁琼等均被严重殴伤，这就是震惊中外的下关事件（民进会史称下关事件）。（）"
-        }
-    ],
-    "重要人物判断题": [
-        {
-            "id": 1,
-            "question": "周建人是我国现代妇女解放运动的先驱者之一。",
-            "options": ["正确", "错误"],
-            "answer": "正确",
-            "basis": "1920年8月，周建人与胡愈之、周作人等17人发起组织“妇女问题研究会”，并在北京晨报副刊上发表了《妇女问题研究宣言》，他是我国现代妇女解放运动的先驱者之一。（）"
-        },
-        {
-            "id": 2,
-            "question": "雷洁琼曾出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，为香港和澳门回归祖国做出了贡献。",
-            "options": ["正确", "错误"],
-            "answer": "正确",
-            "basis": "1985年，雷洁琼出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，多次亲赴港澳广泛听取各界人士意见，还参加了香港特别行政区区旗、区徽评选委员会的工作。（）"
-        }
-    ],
-    "参政议政单选题": [
-        {
-            "id": 1,
-            "question": "全国人大常委会正式批准每年9月10日为教师节的时间是（）。",
-            "options": ["A、1981年", "B、1985年", "C、1994年", "D、2000年"],
-            "answer": "B、1985年",
-            "basis": "1985年1月21日，第六届全国人民代表大会常务委员会第九次会议通过了国务院提请审议的关于建立“教师节”的议案，正式批准每年的9月10日为教师节。（）"
-        }
-    ],
-    "社会服务单选题": [
-        {
-            "id": 1,
-            "question": "民进中央设立社会服务部这个重要机构的时间是（）。",
-            "options": ["A、1985年", "B、1989年", "C、1991年", "D、1994年"],
-            "answer": "B、1989年",
-            "basis": "1989年4月，民进中央设立了社会服务部，该部是民进开展社会服务工作的重要机构。（）"
-        }
-    ],
-    "上海民进单选题": [
-        {
-            "id": 1,
-            "question": "民进上海市分会成立的时间是（）。",
-            "options": ["A、1945年12月30日", "B、1949年6月19日", "C、1950年9月10日", "D、1999年6月17日"],
-            "answer": "B、1949年6月19日",
-            "basis": "1949年6月19日，经总部批准，上海分会正式成立，谢仁冰出任主任理事，赵朴初为副主任理事。（）"
-        }
-    ]
-}
+    <!-- 主内容区 -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- 功能菜单 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8 transform transition-all hover:shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fa fa-list-ul mr-2 text-blue-600"></i>请选择答题模式
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="showCategoryMenu()" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded transition flex items-center justify-center">
+                    <i class="fa fa-th-large mr-2"></i>专项答题（按题型分类）
+                </button>
+                <button onclick="startRandomQuiz()" class="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded transition flex items-center justify-center">
+                    <i class="fa fa-random mr-2"></i>随机答题（全题库抽取）
+                </button>
+                <button onclick="showAnswerRecords()" class="bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded transition flex items-center justify-center">
+                    <i class="fa fa-history mr-2"></i>查看答题记录
+                </button>
+                <button onclick="showCollectedQuestions()" class="bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded transition flex items-center justify-center">
+                    <i class="fa fa-star mr-2"></i>查看收藏题目
+                </button>
+            </div>
 
-# 答题记录与收藏数据
-user_data = {
-    "answer_records": [],  # 答题记录：[{"question_id": 1, "category": "会章知识判断题", "user_answer": "正确", "is_correct": True, "answer_time": "2024-xx-xx xx:xx"}]
-    "collected_questions": []  # 收藏题目：[{"question_id": 1, "category": "会章知识判断题", "question": "..."}]
-}
+            <!-- 数据统计卡片 -->
+            <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-blue-50 p-3 rounded border border-blue-100">
+                    <p class="text-sm text-gray-500">总题库量</p>
+                    <p class="text-xl font-bold text-blue-600">237题</p>
+                </div>
+                <div class="bg-green-50 p-3 rounded border border-green-100">
+                    <p class="text-sm text-gray-500">已答题数</p>
+                    <p id="totalAnswered" class="text-xl font-bold text-green-600">0题</p>
+                </div>
+                <div class="bg-purple-50 p-3 rounded border border-purple-100">
+                    <p class="text-sm text-gray-500">正确率</p>
+                    <p id="accuracyRate" class="text-xl font-bold text-purple-600">0%</p>
+                </div>
+                <div class="bg-orange-50 p-3 rounded border border-orange-100">
+                    <p class="text-sm text-gray-500">收藏题目</p>
+                    <p id="collectedCount" class="text-xl font-bold text-orange-600">0题</p>
+                </div>
+            </div>
+        </div>
 
-def load_user_data():
-    """加载用户答题数据（模拟本地存储）"""
-    global user_data
-    try:
-        with open("user_data.json", "r", encoding="utf-8") as f:
-            user_data = json.load(f)
-    except FileNotFoundError:
-        # 首次使用初始化数据
-        save_user_data()
+        <!-- 题型分类菜单（按PDF目录结构） -->
+        <div id="categoryMenu" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fa fa-folder-open mr-2 text-blue-600"></i>选择题型类别（按《题库10.4.pdf》目录）
+            </h2>
+            
+            <!-- 一、会章知识类 -->
+            <div class="mb-6 border-l-4 border-blue-500 pl-4">
+                <h3 class="font-semibold text-lg mb-3">一、会章知识类（共36题）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                    <button onclick="startCategoryQuiz('会章知识判断题(8道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-circle-o mr-2 text-blue-500"></i>
+                        <div>
+                            <div>会章知识判断题(8道)</div>
+                            <div class="text-xs text-gray-500">考核会章核心条款</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('会章知识单选(24道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-blue-500"></i>
+                        <div>
+                            <div>会章知识单选(24道)</div>
+                            <div class="text-xs text-gray-500">会章细节知识考察</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('会章知识多选(4道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-square-o mr-2 text-blue-500"></i>
+                        <div>
+                            <div>会章知识多选(4道)</div>
+                            <div class="text-xs text-gray-500">会章综合内容考察</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 二、重要会议类 -->
+            <div class="mb-6 border-l-4 border-green-500 pl-4">
+                <h3 class="font-semibold text-lg mb-3">二、重要会议类（共48题）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                    <button onclick="startCategoryQuiz('重要会议判断题(18道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-circle-o mr-2 text-green-500"></i>
+                        <div>
+                            <div>重要会议判断题(18道)</div>
+                            <div class="text-xs text-gray-500">会议史实判断</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('重要会议单选(20道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-green-500"></i>
+                        <div>
+                            <div>重要会议单选(20道)</div>
+                            <div class="text-xs text-gray-500">会议细节知识</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('重要会议多选(10道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-square-o mr-2 text-green-500"></i>
+                        <div>
+                            <div>重要会议多选(10道)</div>
+                            <div class="text-xs text-gray-500">会议综合内容</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            
+            <!-- 三、重要史实类 -->
+            <div class="mb-6 border-l-4 border-purple-500 pl-4">
+                <h3 class="font-semibold text-lg mb-3">三、重要史实类（共69题）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                    <button onclick="startCategoryQuiz('重要史实判断题(14道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-circle-o mr-2 text-purple-500"></i>
+                        <div>
+                            <div>重要史实判断题(14道)</div>
+                            <div class="text-xs text-gray-500">历史事件判断</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('重要史实单选(35道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-purple-500"></i>
+                        <div>
+                            <div>重要史实单选(35道)</div>
+                            <div class="text-xs text-gray-500">史实细节考察</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('重要史实多选(20道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-square-o mr-2 text-purple-500"></i>
+                        <div>
+                            <div>重要史实多选(20道)</div>
+                            <div class="text-xs text-gray-500">史实综合内容</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 四、重要人物类 -->
+            <div class="mb-6 border-l-4 border-orange-500 pl-4">
+                <h3 class="font-semibold text-lg mb-3">四、重要人物类（共41题）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                    <button onclick="startCategoryQuiz('重要人物判断(15道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-circle-o mr-2 text-orange-500"></i>
+                        <div>
+                            <div>重要人物判断(15道)</div>
+                            <div class="text-xs text-gray-500">人物事迹判断</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('重要人物单选(14道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-orange-500"></i>
+                        <div>
+                            <div>重要人物单选(14道)</div>
+                            <div class="text-xs text-gray-500">人物细节考察</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('重要人物多选(12道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-square-o mr-2 text-orange-500"></i>
+                        <div>
+                            <div>重要人物多选(12道)</div>
+                            <div class="text-xs text-gray-500">人物综合内容</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 五、参政议政类 -->
+            <div class="mb-6 border-l-4 border-red-500 pl-4">
+                <h3 class="font-semibold text-lg mb-3">五、参政议政类（共16题）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                    <button onclick="startCategoryQuiz('参政议政判断题(5道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-circle-o mr-2 text-red-500"></i>
+                        <div>
+                            <div>参政议政判断题(5道)</div>
+                            <div class="text-xs text-gray-500">履职成果判断</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('参政议政单选(5道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-red-500"></i>
+                        <div>
+                            <div>参政议政单选(5道)</div>
+                            <div class="text-xs text-gray-500">履职细节考察</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('参政议政多选(6道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-square-o mr-2 text-red-500"></i>
+                        <div>
+                            <div>参政议政多选(6道)</div>
+                            <div class="text-xs text-gray-500">履职综合内容</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 六、社会服务类 -->
+            <div class="mb-6 border-l-4 border-teal-500 pl-4">
+                <h3 class="font-semibold text-lg mb-3">六、社会服务类（共11题）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                    <button onclick="startCategoryQuiz('社会服务单选(3道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-teal-500"></i>
+                        <div>
+                            <div>社会服务单选(3道)</div>
+                            <div class="text-xs text-gray-500">服务工作考察</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('社会服务多选(8道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-square-o mr-2 text-teal-500"></i>
+                        <div>
+                            <div>社会服务多选(8道)</div>
+                            <div class="text-xs text-gray-500">服务综合内容</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 七、自身建设类 -->
+            <div class="mb-6 border-l-4 border-indigo-500 pl-4">
+                <h3 class="font-semibold text-lg mb-3">七、自身建设类（共10题）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                    <button onclick="startCategoryQuiz('自身建设判断题(1道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-circle-o mr-2 text-indigo-500"></i>
+                        <div>
+                            <div>自身建设判断题(1道)</div>
+                            <div class="text-xs text-gray-500">组织建设判断</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('自身建设单选(4道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-indigo-500"></i>
+                        <div>
+                            <div>自身建设单选(4道)</div>
+                            <div class="text-xs text-gray-500">建设工作考察</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('自身建设多选(5道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-square-o mr-2 text-indigo-500"></i>
+                        <div>
+                            <div>自身建设多选(5道)</div>
+                            <div class="text-xs text-gray-500">建设综合内容</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 八、上海民进类 -->
+            <div class="mb-6 border-l-4 border-pink-500 pl-4">
+                <h3 class="font-semibold text-lg mb-3">八、上海民进类（共6题）</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                    <button onclick="startCategoryQuiz('上海民进单选(5道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-dot-circle-o mr-2 text-pink-500"></i>
+                        <div>
+                            <div>上海民进单选(5道)</div>
+                            <div class="text-xs text-gray-500">地方组织考察</div>
+                        </div>
+                    </button>
+                    <button onclick="startCategoryQuiz('上海民进多选(1道)')" class="border border-gray-300 hover:bg-gray-100 py-3 px-4 rounded text-left transition flex items-center">
+                        <i class="fa fa-check-square-o mr-2 text-pink-500"></i>
+                        <div>
+                            <div>上海民进多选(1道)</div>
+                            <div class="text-xs text-gray-500">地方综合内容</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            
+            <button onclick="hideCategoryMenu()" class="mt-4 text-blue-600 hover:underline flex items-center">
+                <i class="fa fa-arrow-left mr-1"></i>返回主菜单
+            </button>
+        </div>
+            
+            <button onclick="hideCategoryMenu()" class="mt-4 text-blue-600 hover:underline flex items-center">
+                <i class="fa fa-arrow-left mr-1"></i>返回主菜单
+            </button>
+        </div>
 
-def save_user_data():
-    """保存用户答题数据到本地"""
-    with open("user_data.json", "w", encoding="utf-8") as f:
-        json.dump(user_data, f, ensure_ascii=False, indent=2)
+        <!-- 答题区域（默认隐藏） -->
+        <div id="quizArea" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="quizTitle" class="text-xl font-semibold"></h2>
+                <span id="questionCount" class="text-gray-500 bg-gray-100 px-3 py-1 rounded-full text-sm"></span>
+            </div>
+            <div id="questionContent" class="text-lg mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100"></div>
+            <div id="optionsArea" class="grid grid-cols-1 gap-3 mb-6"></div>
+            <div id="feedbackArea" class="mb-6 hidden p-4 rounded-lg"></div>
+            <div class="flex justify-between">
+                <button id="prevBtn" onclick="prevQuestion()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded hidden transition flex items-center">
+                    <i class="fa fa-arrow-left mr-1"></i>上一题
+                </button>
+                <div>
+                    <button id="collectBtn" onclick="collectQuestion()" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded mr-2 transition flex items-center">
+                        <i class="fa fa-star mr-1"></i>收藏此题
+                    </button>
+                    <button id="nextBtn" onclick="submitAnswer()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition flex items-center">
+                        提交答案<i class="fa fa-check ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-def display_main_menu() -> str:
-    """显示主菜单，返回用户选择"""
-    print("\n" + "="*50)
-    print("        中国民主促进会会史知识答题程序")
-    print("="*50)
-    print("1. 专项答题（按题型分类）")
-    print("2. 随机答题（全题库随机抽取）")
-    print("3. 模拟测试（限时满分测试）")
-    print("4. 查看答题记录")
-    print("5. 查看收藏题目")
-    print("6. 退出程序")
-    print("="*50)
-    return input("请输入您的选择（1-6）：")
+        <!-- 记录/收藏展示区域（默认隐藏） -->
+        <div id="recordArea" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+            <h2 id="recordTitle" class="text-xl font-semibold mb-4 flex items-center">
+                <i id="recordIcon" class="fa fa-history mr-2 text-purple-600"></i>
+            </h2>
+            
+            <!-- 筛选和搜索 -->
+            <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                <select id="recordFilter" class="border border-gray-300 rounded px-3 py-2">
+                    <option value="all">全部记录</option>
+                    <option value="correct">仅正确</option>
+                    <option value="incorrect">仅错误</option>
+                </select>
+                <input type="text" id="recordSearch" placeholder="搜索题目关键词..." class="flex-1 border border-gray-300 rounded px-3 py-2">
+                <button onclick="filterRecords()" class="bg-blue-600 text-white rounded px-3 py-2 transition">
+                    <i class="fa fa-search mr-1"></i>搜索
+                </button>
+            </div>
+            
+            <div id="recordContent" class="text-gray-700 max-h-[500px] overflow-y-auto pr-2"></div>
+            <button onclick="hideRecordArea()" class="mt-4 text-blue-600 hover:underline flex items-center">
+                <i class="fa fa-arrow-left mr-1"></i>返回主菜单
+            </button>
+        </div>
+    </main>
 
-def display_category_menu() -> str:
-    """显示专项答题类别菜单，返回用户选择的类别"""
-    categories = list(QUESTION_BANK.keys())
-    print("\n" + "="*30)
-    print("        专项答题 - 选择题型类别")
-    print("="*30)
-    for i, category in enumerate(categories, 1):
-        print(f"{i}. {category}（共{len(QUESTION_BANK[category])}题）")
-    print("="*30)
-    while True:
-        choice = input(f"请输入类别编号（1-{len(categories)}）：")
-        if choice.isdigit() and 1 <= int(choice) <= len(categories):
-            return categories[int(choice)-1]
-        print("输入无效，请重新选择！")
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-4 px-6 text-center text-sm">
+        <p>© 2024 中国民主促进会会史知识学习工具 | 基于《题库（237题）10.4.pdf》开发</p>
+    </footer>
 
-def get_question_by_category(category: str) -> List[Dict]:
-    """根据类别获取题目列表"""
-    return QUESTION_BANK[category]
-
-def get_random_questions(num: int) -> List[Tuple[str, Dict]]:
-    """从全题库随机获取指定数量的题目，返回（类别，题目）列表"""
-    all_questions = []
-    for category, questions in QUESTION_BANK.items():
-        for q in questions:
-            all_questions.append((category, q))
-    if num > len(all_questions):
-        num = len(all_questions)
-    return random.sample(all_questions, num)
-
-def get_simulate_test_questions() -> List[Tuple[str, Dict]]:
-    """获取模拟测试题目（每类选取2题，总分100分）"""
-    simulate_questions = []
-    for category, questions in QUESTION_BANK.items():
-        # 每类选取2题，不足2题则全部选取
-        selected = random.sample(questions, min(2, len(questions)))
-        for q in selected:
-            simulate_questions.append((category, q))
-    return simulate_questions
-
-def answer_question(category: str, question: Dict) -> Tuple[bool, str]:
-    """展示题目并获取用户答案，返回（是否正确，用户答案）"""
-    print(f"\n【{category}】")
-    print(f"题目：{question['question']}")
-    print("选项：")
-    for opt in question["options"]:
-        print(f"  {opt}")
-    
-    # 获取用户答案
-    while True:
-        user_ans = input("请输入您的答案（直接输入选项内容，如'正确'或'A、2022'）：")
-        if user_ans in question["options"]:
-            break
-        print(f"输入无效！请从选项中选择（{', '.join(question['options'])}）")
-    
-    # 判断是否正确
-    is_correct = (user_ans == question["answer"])
-    print(f"\n{'✅ 回答正确！' if is_correct else '❌ 回答错误！'}")
-    print(f"正确答案：{question['answer']}")
-    print(f"依据：{question['basis']}")
-    
-    # 询问是否收藏题目
-    while True:
-        collect_choice = input("是否将此题加入收藏？（y/n）：").lower()
-        if collect_choice in ["y", "n"]:
-            if collect_choice == "y":
-                collected = {
-                    "question_id": question["id"],
-                    "category": category,
-                    "question": question["question"],
-                    "answer": question["answer"],
-                    "basis": question["basis"]
+    <script>
+        // 1. 完整题库数据（按PDF目录结构组织）
+        const QUESTION_BANK = {
+           // 一、会章知识类
+            "会章知识判断题(8道)": [
+                {
+                    "id": 1,
+                    "question": "民进的组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：民进会章第一章工作总则第九条规定：组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。"
+                },
+                {
+                    "id": 2,
+                    "question": "民进是政党，只能从事与政治直接相关的工作。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：民进会章第一章第五条规定：以服务为宗旨，面向社会，以人为本，关注民生，突出特色，注重实效，积极开展社会服务工作，为人民群众多办实事。同时，民进的八大基本任务涵盖了经济、政治、文化、社会、生态等多个方面，表明其工作范围不局限于政治领域。"
+                },
+                {
+                    "id": 3,
+                    "question": "民进会员只能由基层组织发展。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：民进会章第二章第十五条规定：申请加入本会，应当由本人提出申请并填写入会申请表，两名会员介绍，经组织培养考察，由基层组织会员大会或委员会会议讨论通过，报省辖市或省级组织批准，并逐级上报中央备案。中央和省级组织必要时可以直接发展会员。"
+                },
+                {
+                    "id": 4,
+                    "question": "地方组织和基层组织的领导成员，只能由同级会员大会或代表大会经过充分酝酿协商，采取无记名投票方式选举产生。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：民进会章第三章第二十三条规定：各级委员会的人选，由同级会员大会或代表大会经过充分酝酿协商，采取无记名投票方式选举产生。地方组织和基层组织的领导成员，由于特殊原因不能用选举办法产生的，可以由上级组织任命。"
+                },
+                {
+                    "id": 5,
+                    "question": "本会的纪律处分有四种：警告、撤销会内职务、留会察看、开除会籍。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：民进会章第九章第五十八条规定：本会的纪律处分有五种：警告、严重警告、撤销会内职务、留会察看、开除会籍。"
+                },
+                {
+                    "id": 6,
+                    "question": "会员要求退会，必须正式提出书面申请，经所在基层组织讨论并提出意见，报省辖市或省级组织批准，注销会籍，不需要报中央备案。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：民进会章第二章第十九条规定：会员要求退会，必须正式提出书面申请，经所在基层组织讨论并提出意见，报省辖市或省级组织批准，注销会籍，并逐级上报中央备案。"
+                },
+                {
+                    "id": 7,
+                    "question": "受处分的会员对处分有不同意见，有权向上级组织直至中央申诉。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：民进会章第九章第六十六条规定：会员对所受纪律处分不服的，可以向作出决定的组织提出复议。对复议决定仍然不服的，可以向上一级组织提出申诉。"
+                },
+                {
+                    "id": 8,
+                    "question": "以服务为宗旨，面向社会，以人为本，关注民生，突出特色，注重实效，积极开展社会服务工作，为人民群众多办实事。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：民进会章第一章第五条规定：以服务为宗旨，面向社会，以人为本，关注民生，突出特色，注重实效，积极开展社会服务工作，为人民群众多办实事。"
                 }
-                # 避免重复收藏
-                if not any(c["question_id"] == question["id"] and c["category"] == category for c in user_data["collected_questions"]):
-                    user_data["collected_questions"].append(collected)
-                    save_user_data()
-                    print("已成功收藏此题！")
-                else:
-                    print("此题已在收藏夹中，无需重复收藏！")
-            break
-        print("输入无效，请输入'y'或'n'！")
-    
-    return is_correct, user_ans
-
-def run_special_answer():
-    """运行专项答题模式"""
-    category = display_category_menu()
-    questions = get_question_by_category(category)
-    print(f"\n您选择了【{category}】，共{len(questions)}题，将按顺序答题！")
-    input("按下回车键开始答题...")
-    
-    correct_count = 0
-    for i, question in enumerate(questions, 1):
-        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
-        is_correct, user_ans = answer_question(category, question)
-        if is_correct:
-            correct_count += 1
-        
-        # 记录答题结果
-        record = {
-            "question_id": question["id"],
-            "category": category,
-            "user_answer": user_ans,
-            "is_correct": is_correct,
-            "answer_time": "2024-xx-xx xx:xx"  # 实际场景可替换为当前时间
-        }
-        user_data["answer_records"].append(record)
-        save_user_data()
-        
-        # 最后一题不显示"下一题"提示
-        if i < len(questions):
-            input("按下回车键继续下一题...")
-    
-    # 展示答题结果
-    print(f"\n" + "="*50)
-    print(f"        专项答题完成！")
-    print(f"答题总数：{len(questions)}题")
-    print(f"正确数量：{correct_count}题")
-    print(f"正确率：{correct_count/len(questions)*100:.1f}%")
-    print("="*50)
-
-def run_random_answer():
-    """运行随机答题模式"""
-    while True:
-        num_input = input("\n请输入随机答题数量（1-20）：")
-        if num_input.isdigit() and 1 <= int(num_input) <= 20:
-            num = int(num_input)
-            break
-        print("输入无效，请输入1-20之间的整数！")
-    
-    random_questions = get_random_questions(num)
-    print(f"\n已从全题库随机抽取{num}题，开始答题！")
-    input("按下回车键开始答题...")
-    
-    correct_count = 0
-    for i, (category, question) in enumerate(random_questions, 1):
-        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
-        is_correct, user_ans = answer_question(category, question)
-        if is_correct:
-            correct_count += 1
-        
-        # 记录答题结果
-        record = {
-            "question_id": question["id"],
-            "category": category,
-            "user_answer": user_ans,
-            "is_correct": is_correct,
-            "answer_time": "2024-xx-xx xx:xx"
-        }
-        user_data["answer_records"].append(record)
-        save_user_data()
-        
-        if i < num:
-            input("按下回车键继续下一题...")
-    
-    # 展示答题结果
-    print(f"\n" + "="*50)
-    print(f"        随机答题完成！")
-    print(f"答题总数：{num}题")
-    print(f"正确数量：{correct_count}题")
-    print(f"正确率：{correct_count/num*100:.1f}%")
-    print("="*50)
-
-def run_simulate_test():
-    """运行模拟测试模式（限时60分钟，总分100分）"""
-    simulate_questions = get_simulate_test_questions()
-    total_score = 100
-    score_per_question = total_score / len(simulate_questions)
-    print(f"\n" + "="*50)
-    print("        模拟测试（限时60分钟，总分100分）")
-    print(f"题目数量：{len(simulate_questions)}题，每题{score_per_question:.1f}分")
-    print("="*50)
-    input("按下回车键开始测试...（请在60分钟内完成）")
-    
-    correct_count = 0
-    for i, (category, question) in enumerate(simulate_questions, 1):
-        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
-        is_correct, user_ans = answer_question(category, question)
-        if is_correct:
-            correct_count += 1
-        
-        # 记录答题结果
-        record = {
-            "question_id": question["id"],
-            "category": category,
-            "user_answer": user_ans,
-            "is_correct": is_correct,
-            "answer_time": "2024-xx-xx xx:xx",
-            "is_simulate_test": True
-        }
-        user_data["answer_records"].append(record)
-        save_user_data()
-        
-        if i < len(simulate_questions):
-            input("按下回车键继续下一题...")
-    
-    # 计算得分并展示结果
-    final_score = correct_count * score_per_question
-    print(f"\n" + "="*50)
-    print(f"        模拟测试完成！")
-    print(f"答题总数：{len(simulate_questions)}题")
-    print(f"正确数量：{correct_count}题")
-    print(f"最终得分：{final_score:.1f}分（满分100分）")
-    print(f"等级评价：{'优秀' if final_score >= 90 else '良好' if final_score >= 80 else '合格' if final_score >= 60 else '不合格'}")
-    print("="*50)
-
-def display_answer_records():
-    """展示用户答题记录"""
-    records = user_data["answer_records"]
-    if not records:
-        print("\n您暂无答题记录，请先进行答题！")
-        return
-    
-    print(f"\n" + "="*50)
-    print(f"        我的答题记录（共{len(records)}条）")
-    print("="*50)
-    # 按答题时间倒序排列（模拟时间排序）
-    sorted_records = sorted(records, key=lambda x: x["answer_time"], reverse=True)
-    
-    for i, record in enumerate(sorted_records, 1):
-        correct_mark = "✅" if record["is_correct"] else "❌"
-        simulate_mark = "【模拟测试】" if record.get("is_simulate_test", False) else ""
-        print(f"{i}. {simulate_mark}{record['category']}")
-        print(f"   题目ID：{record['question_id']} | 我的答案：{record['user_answer']} | {correct_mark}")
-        print(f"   答题时间：{record['answer_time']}")
-        print("-"*30)
-
-def display_collected_questions():
-    """展示收藏题目"""
-    collected = user_data["collected_questions"]
-    if not collected:
-        print("\n您暂无收藏题目，请在答题时选择收藏！")
-        return
-    
-    print(f"\n" + "="*50)
-    print(f"        我的收藏题目（共{len(collected)}题）")
-    print("="*50)
-    for i, q in enumerate(collected, 1):
-        print(f"{i}. 【{q['category']}】")
-        print(f"   题目：{q['question']}")
-        print(f"   正确答案：{q['answer']}")
-        print(f"   依据：{q['basis']}")
-        print("-"*30)
-
-def main():
-    """程序主入口"""
-    load_user_data()
-    while True:
-        choice = display_main_menu()
-        if choice == "1":
-            run_special_answer()
-        elif choice == "2":
-            run_random_answer()
-        elif choice == "3":
-            run_simulate_test()
-        elif choice == "4":
-            display_answer_records()
-        elif choice == "5":
-            display_collected_questions()
-        elif choice == "6":
-            print("\n感谢使用民进会史知识答题程序，再见！")
-            save_user_data()
-            break
-        else:
-            print("输入无效，请重新选择（1-6）！")
-
-if __name__ == "__main__":
-    main()
-import random
-import json
-from typing import List, Dict, Tuple
-
-# 题库数据（基于文档整理，涵盖8大类核心题目，每类选取典型题目示例，完整题库可按此格式扩展）
-QUESTION_BANK = {
-    "会章知识判断题": [
-        {
-            "id": 1,
-            "question": "民进的组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。",
-            "options": ["正确", "错误"],
-            "answer": "正确",
-            "basis": "民进会章第一章工作总则第九条规定：组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。（）"
-        },
-        {
-            "id": 2,
-            "question": "民进是政党，只能从事与政治直接相关的工作。",
-            "options": ["正确", "错误"],
-            "answer": "错误",
-            "basis": "从民进的八大基本任务可以看到，民进的工作包括了经济、政治、文化、社会、生态、祖国统一、对外交流、人才培养等方方面面。民进会章第一章第五条规定，本会以服务为宗旨，面向社会，以人为本，关注民生，突出特色，开展社会服务工作，为人民群众多办实事。（）"
-        }
-    ],
-    "会章知识单选题": [
-        {
-            "id": 1,
-            "question": "最新审议通过《中国民主促进会第十二次全国代表大会关于〈中国民主促进会章程〉修正案的决议》的时间是（）年12月19日。",
-            "options": ["A、2022", "B、2012", "C、2017"],
-            "answer": "A、2022",
-            "basis": "中国民主促进会章程（中国民主促进会第十三次全国代表大会部分修改，2022年12月19日通过）（）"
-        },
-        {
-            "id": 2,
-            "question": "中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治（）性质的政党。",
-            "options": ["A、团体", "B、派别", "C、联盟", "D、组织"],
-            "answer": "C、联盟",
-            "basis": "民进会章总纲规定，中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治联盟性质的政党。（）"
-        }
-    ],
-    "重要会议判断题": [
-        {
-            "id": 1,
-            "question": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆）正式宣告成立，大会地点就在现图书馆二楼的阅览室。",
-            "options": ["正确", "错误"],
-            "answer": "错误",
-            "basis": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆会心楼）正式宣告成立，会场是在图书馆院内右侧的会心楼内。（）"
-        },
-        {
-            "id": 2,
-            "question": "1979年10月，民进召开第四次全国代表大会，通过了新的章程，明确了“中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派”。",
-            "options": ["正确", "错误"],
-            "answer": "正确",
-            "basis": "1979年10月，民进第四次全国代表大会通过的新章程规定：“中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派，是以从事文化教育工作为主的社会主义知识分子和拥护社会主义的爱国者的政治联盟，是为社会主义服务的政治力量。”（）"
-        }
-    ],
-    "重要史实单选题": [
-        {
-            "id": 1,
-            "question": "中国民主促进会成立的时间和地点是（）。",
-            "options": ["A、1945年12月30日 南京", "B、1945年12月30日 上海", "C、1945年12月30日 重庆", "D、1946年1月2日 上海"],
-            "answer": "B、1945年12月30日 上海",
-            "basis": "1945年12月30日，中国民主促进会在上海正式宣告成立。1946年1月2日是民进第二次会员大会开会的时间。（）"
-        },
-        {
-            "id": 2,
-            "question": "1946年6月23日，上海人民反内战暨欢送和平请愿团赴京大会后，请愿团在南京下关遭到国民党特务围攻殴打，这一事件被称为（）。",
-            "options": ["A、较场口惨案", "B、下关事件", "C、五二〇惨案", "D、一二·一惨案"],
-            "answer": "B、下关事件",
-            "basis": "1946年6月23日，以民进马叙伦、雷洁琼等11人为代表的请愿团赴南京和平请愿，在南京下关车站遭到特务暴徒袭击，马叙伦、雷洁琼等均被严重殴伤，这就是震惊中外的下关事件（民进会史称下关事件）。（）"
-        }
-    ],
-    "重要人物判断题": [
-        {
-            "id": 1,
-            "question": "周建人是我国现代妇女解放运动的先驱者之一。",
-            "options": ["正确", "错误"],
-            "answer": "正确",
-            "basis": "1920年8月，周建人与胡愈之、周作人等17人发起组织“妇女问题研究会”，并在北京晨报副刊上发表了《妇女问题研究宣言》，他是我国现代妇女解放运动的先驱者之一。（）"
-        },
-        {
-            "id": 2,
-            "question": "雷洁琼曾出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，为香港和澳门回归祖国做出了贡献。",
-            "options": ["正确", "错误"],
-            "answer": "正确",
-            "basis": "1985年，雷洁琼出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，多次亲赴港澳广泛听取各界人士意见，还参加了香港特别行政区区旗、区徽评选委员会的工作。（）"
-        }
-    ],
-    "参政议政单选题": [
-        {
-            "id": 1,
-            "question": "全国人大常委会正式批准每年9月10日为教师节的时间是（）。",
-            "options": ["A、1981年", "B、1985年", "C、1994年", "D、2000年"],
-            "answer": "B、1985年",
-            "basis": "1985年1月21日，第六届全国人民代表大会常务委员会第九次会议通过了国务院提请审议的关于建立“教师节”的议案，正式批准每年的9月10日为教师节。（）"
-        }
-    ],
-    "社会服务单选题": [
-        {
-            "id": 1,
-            "question": "民进中央设立社会服务部这个重要机构的时间是（）。",
-            "options": ["A、1985年", "B、1989年", "C、1991年", "D、1994年"],
-            "answer": "B、1989年",
-            "basis": "1989年4月，民进中央设立了社会服务部，该部是民进开展社会服务工作的重要机构。（）"
-        }
-    ],
-    "上海民进单选题": [
-        {
-            "id": 1,
-            "question": "民进上海市分会成立的时间是（）。",
-            "options": ["A、1945年12月30日", "B、1949年6月19日", "C、1950年9月10日", "D、1999年6月17日"],
-            "answer": "B、1949年6月19日",
-            "basis": "1949年6月19日，经总部批准，上海分会正式成立，谢仁冰出任主任理事，赵朴初为副主任理事。（）"
-        }
-    ]
-}
-
-# 答题记录与收藏数据
-user_data = {
-    "answer_records": [],  # 答题记录：[{"question_id": 1, "category": "会章知识判断题", "user_answer": "正确", "is_correct": True, "answer_time": "2024-xx-xx xx:xx"}]
-    "collected_questions": []  # 收藏题目：[{"question_id": 1, "category": "会章知识判断题", "question": "..."}]
-}
-
-def load_user_data():
-    """加载用户答题数据（模拟本地存储）"""
-    global user_data
-    try:
-        with open("user_data.json", "r", encoding="utf-8") as f:
-            user_data = json.load(f)
-    except FileNotFoundError:
-        # 首次使用初始化数据
-        save_user_data()
-
-def save_user_data():
-    """保存用户答题数据到本地"""
-    with open("user_data.json", "w", encoding="utf-8") as f:
-        json.dump(user_data, f, ensure_ascii=False, indent=2)
-
-def display_main_menu() -> str:
-    """显示主菜单，返回用户选择"""
-    print("\n" + "="*50)
-    print("        中国民主促进会会史知识答题程序")
-    print("="*50)
-    print("1. 专项答题（按题型分类）")
-    print("2. 随机答题（全题库随机抽取）")
-    print("3. 模拟测试（限时满分测试）")
-    print("4. 查看答题记录")
-    print("5. 查看收藏题目")
-    print("6. 退出程序")
-    print("="*50)
-    return input("请输入您的选择（1-6）：")
-
-def display_category_menu() -> str:
-    """显示专项答题类别菜单，返回用户选择的类别"""
-    categories = list(QUESTION_BANK.keys())
-    print("\n" + "="*30)
-    print("        专项答题 - 选择题型类别")
-    print("="*30)
-    for i, category in enumerate(categories, 1):
-        print(f"{i}. {category}（共{len(QUESTION_BANK[category])}题）")
-    print("="*30)
-    while True:
-        choice = input(f"请输入类别编号（1-{len(categories)}）：")
-        if choice.isdigit() and 1 <= int(choice) <= len(categories):
-            return categories[int(choice)-1]
-        print("输入无效，请重新选择！")
-
-def get_question_by_category(category: str) -> List[Dict]:
-    """根据类别获取题目列表"""
-    return QUESTION_BANK[category]
-
-def get_random_questions(num: int) -> List[Tuple[str, Dict]]:
-    """从全题库随机获取指定数量的题目，返回（类别，题目）列表"""
-    all_questions = []
-    for category, questions in QUESTION_BANK.items():
-        for q in questions:
-            all_questions.append((category, q))
-    if num > len(all_questions):
-        num = len(all_questions)
-    return random.sample(all_questions, num)
-
-def get_simulate_test_questions() -> List[Tuple[str, Dict]]:
-    """获取模拟测试题目（每类选取2题，总分100分）"""
-    simulate_questions = []
-    for category, questions in QUESTION_BANK.items():
-        # 每类选取2题，不足2题则全部选取
-        selected = random.sample(questions, min(2, len(questions)))
-        for q in selected:
-            simulate_questions.append((category, q))
-    return simulate_questions
-
-def answer_question(category: str, question: Dict) -> Tuple[bool, str]:
-    """展示题目并获取用户答案，返回（是否正确，用户答案）"""
-    print(f"\n【{category}】")
-    print(f"题目：{question['question']}")
-    print("选项：")
-    for opt in question["options"]:
-        print(f"  {opt}")
-    
-    # 获取用户答案
-    while True:
-        user_ans = input("请输入您的答案（直接输入选项内容，如'正确'或'A、2022'）：")
-        if user_ans in question["options"]:
-            break
-        print(f"输入无效！请从选项中选择（{', '.join(question['options'])}）")
-    
-    # 判断是否正确
-    is_correct = (user_ans == question["answer"])
-    print(f"\n{'✅ 回答正确！' if is_correct else '❌ 回答错误！'}")
-    print(f"正确答案：{question['answer']}")
-    print(f"依据：{question['basis']}")
-    
-    # 询问是否收藏题目
-    while True:
-        collect_choice = input("是否将此题加入收藏？（y/n）：").lower()
-        if collect_choice in ["y", "n"]:
-            if collect_choice == "y":
-                collected = {
-                    "question_id": question["id"],
-                    "category": category,
-                    "question": question["question"],
-                    "answer": question["answer"],
-                    "basis": question["basis"]
+                // 此处省略剩余7题，实际使用时补充完整
+            ],
+            "会章知识单选(24道)": [
+                {
+                    "id": 1,
+                    "question": "最新审议通过《中国民主促进会第十二次全国代表大会关于〈中国民主促进会章程〉修正案的决议》的时间是（）年12月19日。",
+                    "options": ["A、2022", "B、2012", "C、2017"],
+                    "answer": "A、2022",
+                    "basis": "依据：中国民主促进会章程（中国民主促进会第十三次全国代表大会部分修改，2022年12月19日通过）"
+                },
+               {
+                    "id": 2,
+                    "question": "中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治（ ）性质的政党，是接受中国共产党领导、同中国共产党通力合作的中国特色社会主义参政党，是爱国统一战线的组成部分。",
+                    "options": ["A、团体", "B、派别", "C、联盟", "D、组织"],
+                    "answer": "C、联盟",
+                    "basis": "依据：民进会章总纲规定，中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治联盟性质的政党，是接受中国共产党领导、同中国共产党通力合作的中国特色社会主义参政党，是爱国统一战线的组成部分。"
+                },
+               {
+                    "id": 3,
+                    "question": "本会的优良传统是坚持接受中国共产党的领导，坚持爱国、民主、团结、求实，坚持（ ）。",
+                    "options": ["A、实事求是", "B、立会为公", "C、以党为师", "D、与时俱进"],
+                    "answer": "B、立会为公",
+                    "basis": "依据：民进会章总纲规定，本会的优良传统是坚持接受中国共产党的领导，坚持爱国、民主、团结、求实，坚持立会为公。"
+                },
+               {
+                    "id": 4,
+                    "question": "民进以（ ）为履行职责的第一要务，围绕中心，服务大局，加强与有关部门的联系，深入调查研究，对经济和社会发展中的重要问题提出意见和建议，参与协商决策和进行民主监督。",
+                    "options": ["A、参政议政", "B、实现民族振兴", "C、促进经济社会发展", "D、服务高质量发展"],
+                    "answer": "D、服务高质量发展",
+                    "basis": "依据：民进会章第一章第二条，本会\"以服务高质量发展为履行职责的第一要务，围绕中心，服务大局，加强与有关部门的联系，深入调查研究，对经济和社会发展中的重要问题提出意见和建议，参与协商决策和进行民主监督。\""
+                },
+               {
+                    "id": 5,
+                    "question": "中国民主促进会坚持中国共产党领导的（ ）制度。",
+                    "options": ["A、多党合作和民主监督", "B、参政议政和政治协商", "C、参政议政和民主监督", "D、多党合作和政治协商"],
+                    "answer": "D、多党合作和政治协商",
+                    "basis": "依据：民进会章总纲规定，中国民主促进会\"坚持中国共产党领导的多党合作和政治协商制度\"。"
+                },
+               {
+                    "id": 6,
+                    "question": "中国民主促进会积极参加国家政权，参与重要方针政策、（ ）的协商。",
+                    "options": ["A、国家军事战略", "B、重要领导人选", "C、其他党派领导人选", "D、国家重要事务"],
+                    "answer": "B、重要领导人选",
+                    "basis": "依据：民进会章总纲规定，\"本会坚持中国共产党领导的多党合作和政治协商制度，贯彻\"长期共存、互相监督、肝胆相照、荣辱与共\"的方针，积极参加国家政权，参与重要方针政策、重要领导人选的协商。\""
+                },
+               {
+                    "id": 7,
+                    "question": "中国民主促进会通过加强与有关部门的联系，深入调查研究，对（ ）发展中的重要问题提出意见和建议，参与协商决策和进行民主监督。",
+                    "options": ["A、经济和社会", "B、军事和安全", "C、法制与科技", "D、经济和政治"],
+                    "answer": "A、经济和社会",
+                    "basis": "依据：民进会章第一章第二条规定，以服务高质量发展为履行职责的第一要务，围绕中心，服务大局，加强与有关部门的联系，深入调查研究，对经济和社会发展中的重要问题提出意见和建议，参与协商决策和进行民主监督。"
+                },
+               {
+                    "id": 8,
+                    "question": "中国民主促进会通过经常了解、及时反映（ ），做好解疑释惑、理顺情绪、化解矛盾、凝聚共识工作，为促进社会和谐稳定发挥积极作用。",
+                    "options": ["A、国际形势", "B、区域发展", "C、社情民意", "D、经济走势"],
+                    "answer": "C、社情民意",
+                    "basis": "依据：民进会章第一章第三条规定，我会要\"经常了解、及时反映社情民意，做好解疑释惑、理顺情绪、化解矛盾、凝聚共识工作，为促进社会和谐稳定发挥积极作用。\""
+                },
+               {
+                    "id": 9,
+                    "question": "中国民主促进会通过积极参加（ ）的各项活动，发挥本会在新时代爱国统一战线中的作用。",
+                    "options": ["A、人民代表大会", "B、人民政协", "C、社会团体", "D、民间组织"],
+                    "answer": "B、人民政协",
+                    "basis": "依据：民进会章第一章第四条规定，中国民主促进会通过\"积极参加人民政协的各项活动，发挥本会在新时代爱国统一战线中的作用。\""
+                },
+               {
+                    "id": 10,
+                    "question": "中国民主促进会通过推动担任各级人大代表、政协委员和在各级人大、政府及其工作部门、（ ）等任职的会员认真履行职责，支持担任政府参事、文史研究馆馆员和特约人员的会员开展工作。其中，任职部门不包括（ ）。",
+                    "options": ["A、政协", "B、司法机关", "C、军队", "D、科研院所"],
+                    "answer": "C、军队",
+                    "basis": "依据：民进会章第一章第四条的规定，\"推动担任各级人大代表、政协委员和在各级人大、政府及其工作部门、政协、司法机关、高等学校、科研院所、国有企事业单位、社会团体等任职的会员认真履行职责，支持担任政府参事、文史研究馆馆员和特约人员的会员开展工作。\""
+                },
+               {
+                    "id": 11,
+                    "question": "中国民主促进会把加强（ ）放在自身建设的首位。",
+                    "options": ["A、思想政治建设", "B、理论学习", "C、培养人才", "D、发展会员"],
+                    "answer": "A、思想政治建设",
+                    "basis": "依据：民进会章第一章第八条的规定，\"把加强思想政治建设放在自身建设的首位。\""
+                },
+               {
+                    "id": 12,
+                    "question": "中国民主促进会的组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的（ ）为主、以大中城市为主、以有一定代表性的人士为主的原则。",
+                    "options": ["A、领导干部", "B、高中级知识分子", "C、青年骨干", "D、知名人士"],
+                    "answer": "B、高中级知识分子",
+                    "basis": "依据：民进会章第一章第九条的规定，\"组织发展坚持以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、以大中城市为主、以有一定代表性人士为主的原则。\""
+                },
+               {
+                    "id": 13,
+                    "question": "中国民主促进会依法加强机关干部队伍建设、制度建设、作风建设、文化建设和信息化建设，强化（ ）意识，提高工作效率，推进机关工作的制度化、规范化和程序化。",
+                    "options": ["A、领导", "B、服务", "C、统筹", "D、和谐"],
+                    "answer": "B、服务",
+                    "basis": "依据：民进会章第一章第十一条的规定，\"依法加强机关干部队伍建设、制度建设、作风建设、文化建设和信息化建设，强化服务意识，实行会务公开，提高工作效率，推进机关工作的制度化、规范化和程序化。\""
+                },
+               {
+                    "id": 14,
+                    "question": "中国民主促进会会员必须热爱祖国，拥护（ ）的领导，爱岗敬业，努力为中国特色社会主义事业服务。",
+                    "options": ["A、中国共产党", "B、各级政府", "C、各级人大", "D、本职单位"],
+                    "answer": "A、中国共产党",
+                    "basis": "依据：民进会章第二章第十四条的规定，\"会员必须热爱祖国，拥护中国共产党的领导，爱岗敬业，努力为中国特色社会主义事业服务。\""
+                },
+               {
+                    "id": 15,
+                    "question": "中国民主促进会的组织原则是（ ）",
+                    "options": ["A、集体领导制", "B、分工负责制", "C、民主集中制", "D、少数服从多数，多数照顾少数"],
+                    "answer": "C、民主集中制",
+                    "basis": "依据：民进会章第三章第二十一条的规定，\"本会的组织原则是民主集中制。\""
+                },
+               {
+                    "id": 16,
+                    "question": "中国民主促进会的最高权力机构是（ ）。",
+                    "options": ["A、中国民主促进会中央委员会", "B、中国民主促进会中央常务委员会", "C、中国民主促进会全国代表大会", "D、中国民主促进会中央机关"],
+                    "answer": "C、中国民主促进会全国代表大会",
+                    "basis": "依据：民进会章第四章第二十六条的规定，\"全国代表大会是本会的最高权力机构。\""
+                },
+               {
+                    "id": 17,
+                    "question": "中国民主促进会全国代表大会由（ ）召集，必要时可以提前或延期举行。",
+                    "options": ["A、中国民主促进会中央委员会", "B、中国民主促进会中央常务委员会", "C、中国民主促进会中央办公厅", "D、中国民主促进会中央组织部"],
+                    "answer": "A、中国民主促进会中央委员会",
+                    "basis": "依据：民进会章第四章第二十七条的规定，\"全国代表大会每五年举行一次，由中央委员会召集，必要时可以提前或延期举行。\""
+                },
+               {
+                    "id": 18,
+                    "question": "实现中国民主促进会政治纲领的基础是（ ）。",
+                    "options": ["A、中央委员会", "B、省级组织", "C、骨干会员", "D、基层组织"],
+                    "answer": "D、基层组织",
+                    "basis": "依据：民进会章第六章第四十七条的规定，\"基层组织是实现本会政治纲领的基础。\""
+                },
+               {
+                    "id": 19,
+                    "question": "中国民主促进会中央和地方组织的领导班子成员，无论是选举产生的，或是由组织任命的，均实行（ ）。",
+                    "options": ["A、任命制", "B、委任制", "C、任期制", "D、聘任制"],
+                    "answer": "C、任期制",
+                    "basis": "依据：民进会章第八章第五十六条的规定，\"中央和地方组织的领导班子成员，无论是选举产生的，或是由组织任命的，均实行任期制，原则上同一职务可以连选连任两届，最多不超过三届。\""
+                },
+               {
+                    "id": 20,
+                    "question": "中国民主促进会中央和地方组织的领导班子成员，原则上同一职务可连选连任（ ）。",
+                    "options": ["A、两届", "B、三届", "C、四届"],
+                    "answer": "A、两届",
+                    "basis": "依据：民进会章第八章第五十六条的规定，\"中央和地方组织的领导班子成员，无论是选举产生的，或是由组织任命的，均实行任期制，原则上同一职务可以连选连任两届，最多不超过三届。\""
+                },
+               {
+                    "id": 21,
+                    "question": "本会在国家政治生活中认真履行（ ）的基本职能。",
+                    "options": ["A、政治协商、民主监督", "B、参政议政、民主监督、参加中国共产党领导的政治协商", "C、参政议政、社会服务"],
+                    "answer": "B、参政议政、民主监督、参加中国共产党领导的政治协商",
+                    "basis": "依据：民进会章总纲的规定，\"在国家政治生活中认真履行参政议政、民主监督、参加中国共产党领导的政治协商的基本职能。\""
+                },
+               {
+                    "id": 22,
+                    "question": "本会加强与（ ）的交往与合作，为实现祖国的繁荣和统一作出贡献。",
+                    "options": ["A、台湾同胞、港澳同胞和华侨华人", "B、台湾同胞、港澳同胞和海外华侨", "C、台湾同胞、港澳同胞和海外侨胞"],
+                    "answer": "C、台湾同胞、港澳同胞和海外侨胞",
+                    "basis": "依据：民进会章第一章第七条的规定，\"加强与台湾同胞、港澳同胞和海外侨胞的交往与合作，为实现祖国的繁荣和统一作出贡献。\""
+                },
+               {
+                    "id": 23,
+                    "question": "本会依法加强机关干部队伍建设、制度建设、作风建设、文化建设和信息化建设，强化服务意识，实行会务公开，提高工作效率，推进机关工作的（ ）。",
+                    "options": ["A、制度化、服务化和信息化", "B、制度化、规范化和信息化", "C、制度化、规范化和程序化"],
+                    "answer": "C、制度化、规范化和程序化",
+                    "basis": "依据：民进会章第一章第十一条的规定，\"依法加强机关干部队伍建设、制度建设、作风建设、文化建设和信息化建设，强化服务意识，实行会务公开，提高工作效率，推进机关工作的制度化、规范化和程序化。\""
+                },
+               {
+                    "id": 24,
+                    "question": "会员不履行义务，长期无故不参加组织活动、（ ），经教育无效，或有其他原因，不宜保留会籍的，可由所在基层组织讨论，报省辖市或省级组织批准，作自行退会处理，并逐级上报中央备案。",
+                    "options": ["A、不参加学习", "B、不汇报思想", "C、不交纳会费", "D、不联系会员"],
+                    "answer": "C、不交纳会费",
+                    "basis": "依据：民进会章第二章第二十条的规定，\"会员不履行义务，长期无故不参加组织活动、不交纳会费，经教育无效，或有其他原因，不宜保留会籍的，由其所在基层组织讨论并提出意见，报省辖市或省级组织批准，作自行退会处理，注销会籍，并逐级上报中央备案。\""
+                },             
+                // 此处省略剩余23题，实际使用时补充完整
+            ],
+            "会章知识多选(4道)": [
+                {
+                    "id": 1,
+                    "question": "中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的（ ）为主、具有（ ）性质的政党，是接受中国共产党领导、同中国共产党通力合作的中国特色社会主义（ ）党。",
+                    "options": [
+                        "A、高中级知识分子",
+                        "B、统一战线", 
+                        "C、政治联盟",
+                        "D、参政"
+                    ],
+                    "answer": "A、高中级知识分子,C、政治联盟,D、参政",
+                    "basis": "依据：民进会章总纲规定，“中国民主促进会是以从事教育文化出版传媒以及相关的科学技术领域工作的高中级知识分子为主、具有政治联盟性质的政党，是接受中国共产党领导、同中国共产党通力合作的中国特色社会主义参政党，是爱国统一战线的组成部分。”"
+               },
+               {
+                    "id": 2,
+                    "question": "根据国家的法律法规和方针政策，紧密联系实际，（ ），（ ），积极发挥（ ），为（ ），为（ ），为（ ）。",
+                    "options": [
+                        "A、集智聚力",
+                        "B、创造性地开展工作",
+                        "C、参政党的作用",
+                        "D、执政党助力",
+                        "E、国家尽责",
+                        "F、人民服务"
+                    ],
+                    "answer": "A、集智聚力,B、创造性地开展工作,C、参政党的作用,D、执政党助力,E、国家尽责,F、人民服务",
+                    "basis": "依据：民进会章第一章第一条的规定，“根据国家的法律法规和方针政策，紧密联系实际，集智聚力，创造性地开展工作，积极发挥参政党的作用，为执政党助力，为国家尽责，为人民服务。”"
+                },
+                {
+                    "id": 3,
+                    "question": "民进的基层组织是（ ）。",
+                    "options": [
+                        "A、基层委员会",
+                        "B、总支部委员会",
+                        "C、支部委员会",
+                        "D、直属小组"
+                    ],
+                    "answer": "A、基层委员会,B、总支部委员会,C、支部委员会",
+                    "basis": "依据：民进会章第六章第四十五条规定，“本会的基层组织是基层委员会、总支部委员会、支部委员会。”"
+                },
+                {
+                    "id": 4,
+                    "question": "本会的优良传统是坚持（ ），坚持（ ），坚持（ ）。",
+                    "options": [
+                        "A、接受中国共产党的领导",
+                        "B、爱国、民主、团结、求实",
+                        "C、实事求是",
+                        "D、立会为公"
+                    ],
+                    "answer": "A、接受中国共产党的领导,B、爱国、民主、团结、求实,D、立会为公",
+                    "basis": "依据：民进会章总纲指出，“本会的优良传统是坚持接受中国共产党的领导，坚持爱国、民主、团结、求实，坚持立会为公。”"
                 }
-                # 避免重复收藏
-                if not any(c["question_id"] == question["id"] and c["category"] == category for c in user_data["collected_questions"]):
-                    user_data["collected_questions"].append(collected)
-                    save_user_data()
-                    print("已成功收藏此题！")
-                else:
-                    print("此题已在收藏夹中，无需重复收藏！")
-            break
-        print("输入无效，请输入'y'或'n'！")
-    
-    return is_correct, user_ans
+                // 此处省略剩余3题，实际使用时补充完整
+            ],
+            
+            // 二、重要会议类
+            "重要会议判断题(18道)": [
+                {
+                    "id": 1,
+                    "question": "1945年12月30日，中国民主促进会在中国科学社（今陕西南路235号的黄浦区明复图书馆）正式宣告成立，大会地点就在现图书馆二楼的阅览室。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：1945年12月30日，中国民主促进会在上海中国科学社（今陕西南路235号的黄浦区明复图书馆会心楼）正式宣告成立，会场是在图书馆院内右侧的会心楼内。"
+                },
+                {
+                    "id": 2,
+                    "question": "1945年12月30日，中国民主促进会召开成立大会，通过了《中国民主促进会简章》，提出了\"以发扬民主精神，推进中国民主政治之实践\"为宗旨。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：见成立大会通过的《中国民主促进会简章》。"
+                    },
+                    {
+                    "id": 3,
+                    "question": "在民进成立大会上，马叙伦指出取名为民主促进会是要发扬民主精神以促进中国民主政治之实现。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：在民进成立大会上，马叙伦担任会议主席，他首先向大会报告了发起该组织的原因和经过，他说，纵览目前国是，非促进民主不足以建永固之国基，经各方交换意见后，认为有组织团体以谋群策群力之必要。取名为民主促进会是要发扬民主精神以促进中国民主政治之实现。"
+                    },
+                    {
+                    "id": 4,
+                    "question": "1947年2月9日，民进召开了第五次会员大会，由于环境恶劣，出席这次会议的会员仅有39人。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1947年2月9日，民进召开了第五次会员大会。由于环境恶劣，出席这次会议的会员仅39人，马叙伦、王绍鏊、许广平、周建人、严景耀、徐伯昕、朱绍文、李平心、柯灵、谢仁冰等出席了会议。"
+                    },
+                    {
+                    "id": 5,
+                    "question": "民进在第一次全国代表大会之前曾在1946年1月2日和1947年2月9日产生过两届理事会。1950年4月15日，民进第一次全国代表大会选举产生的领导机构，在届次上承前续记，称谓上改为中央理事会，称为第三届中央理事会。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：民进在第一次全国代表大会上选举产生了新的中央领导机构——由25名理事、8名候补理事组成的第三届中央理事会。民进在第一次全国代表大会之前曾在1946年1月2日和1947年2月9日产生过两届理事会。民进一大产生的领导机构，在届次上承前续记，在称谓上改为中央理事会。"
+                    },
+                    {
+                    "id": 6,
+                    "question": "1950年4月15日民进在北京召开了第一次全国代表大会，选举产生了第一届中央理事会。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：1950年4月15日民进在北京召开了第一次全国代表大会，与会代表共43人，大会的主要议题是总结民进在民主革命时期的工作和经验，充分认识当前的形势，明确在新历史时期民进的地位、任务和作用，并选举产生新的领导机构。周恩来总理亲临讲话，朱德、陈毅、彭真等也莅临大会并讲话。这次代表大会选举产生了第三届中央理事会，第三届中央理事会是继民进第五次会员大会选出的第二届理事会承前续记的。"
+                    },
+                    {
+                    "id": 7,
+                    "question": "民进第一次全国代表大会通过的会章明确规定，民进\"以《中国人民政治协商会议共同纲领》为纲领，以团结自由职业者及工商界人士，巩固人民民主统一战线，加强人民民主专政，积极参加新民主主义建设，贯彻实现共同纲领为宗旨。\"",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：民进第一次全国代表大会根据《关于接受人民政治协商会议共同纲领为本会纲领的决议》，大会通过的会章也做出了民进\"以《中国人民政治协商会议共同纲领》为纲领，以团结自由职业者及工商界人士，巩固人民民主统一战线，加强人民民主专政，积极参加新民主主义建设，贯彻实现共同纲领为宗旨。\""
+                    },
+                    {
+                    "id": 8,
+                    "question": "1979年10月，民进召开第四次全国代表大会，通过了新的章程。明确了\"中国民主促进会中国共产党领导的革命的爱国的统一战线中的一个民主党派\"。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：雷洁琼就章程的修改向大会作了说明。她说，原有的会章是1956年民进二大时修改通过的，已经23年了。现在形势已发生了巨大变化，因此有必要对原来的章程进行修改和补充，以与时代相适应。关于会的性质，新会章规定：\"中国民主促进会是中国共产党领导的革命的爱国的统一战线中的一个民主党派，是以从事文化教育工作为主的社会主义知识分子和拥护社会主义的爱国者的政治联盟，是为社会主义服务的政治力量。\""
+                    },
+                    {
+                    "id": 9,
+                    "question": "1983年11月9日至21日，民进第五次全国代表大会在北京举行。在中央常务委员会第一次会议上根据新会章规定，决定成立执行局，负责处理中央日常的重要工作。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：在七届一中全会上，周建人继续当选为主席，叶圣陶、徐伯昕、赵朴初、吴贻芳、雷洁琼、谢冰心、吴若安、陈舜礼当选为副主席，葛志成当选为秘书长。中央常务委员会第一次会议根据新会章规定，决定成立执行局，负责处理中央日常的重要工作。会议推举陈舜礼为执行局主任，葛志成、叶至善、楚庄、吴荣为委员。1984年12月，民进中央常委会增选方明、张志公、梅向明为执行局委员；1986年10月，增选陈益群为执行局委员。"
+                    },
+                    {
+                    "id": 10,
+                    "question": "1992年12月，民进第七次全国代表大会通过的会章，首次提出\"本会是中国共产党领导的多党合作和政治协商制度中的一个参政党\"。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：新章程根据中共中央《意见》的精神，对原有章程作了较大的修改补充，增加了阐明民进参政党的地位、特点和国家政治生活中作用的内容。"
+                    },
+                    {
+                    "id": 11,
+                    "question": "1995年12月30日，民进成立50周年庆祝大会在北京人民大会堂隆重举行。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：应为1995年12月12日。"
+                    },
+                    {
+                    "id": 12,
+                    "question": "2002年12月16日，在民进第九次全国代表大会上，由于本会情况的发展变化，会议决定不再设立民进中央参议委员会，不再设候补中央委员。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：应为民进第八次全国代表大会。"
+                    },
+                    {
+                    "id": 13,
+                    "question": "民进第八次全国代表大会以来，全会始终坚持以邓小平理论和\"三个代表\"重要思想为指导，以领导班子建设为核心、以组织建设为基础、以制度建设为保障，全面推进了高素质参政党建设。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：应为以思想建设为核心。"
+                    },
+                    {
+                    "id": 14,
+                    "question": "民进第十一次全国代表大会报告指出，民进全会以中国特色社会主义理论体系为指导，努力建设适应时代要求的高素质参政党，始终坚持了\"有思有行、集智聚力、顺势而为、开拓创新\"的工作方针。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：民进十一大报告。"
+                    },
+                    {
+                    "id": 15,
+                    "question": "坚持接受中国共产党的领导，是民进老一辈正确的历史选择，是民进优良传统的核心，是民进持续健康发展、沿着正确道路前进的根本保证。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：民进十二大工作报告在谈到过去五年的基本经验时指出，坚持接受中国共产党的领导，是民进老一辈正确的历史选择，是民进优良传统的核心，是民进持续健康发展、沿着正确道路前进的根本保证。中国民主促进会自成立以来，始终认同共产党的政治主张，接受共产党的领导，做共产党的诤友挚友，与中国共产党同心同行，形成了民进人\"只有跟着共产党走，才是在正道上行\"的坚定信念；形成了坚持中国共产党的领导，坚持爱国、民主、团结、求实，坚持立会为公的优良传统。坚持接受中国共产党的领导，坚持和发展中国特色社会主义，是我会当前最大的政治共识；中国特色社会主义参政党，是我会在新时期定位的根本遵循。"
+                    },
+                    {
+                    "id": 16,
+                    "question": "在民进的历史上，共有7人当选民进中央主席，依次为马叙伦、周建人、叶圣陶、雷洁琼、许嘉璐、严隽琪、蔡达锋。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：历届代表大会综合。"
+                    },
+                    {
+                    "id": 17,
+                    "question": "民进中央历任秘书长有许广平、葛志成、陈益群、赵光华、高友东。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：历届民进中央委员会综合，遗漏了民进三大选出的秘书长徐伯昕和第十二届中央委员会秘书长朱永新。"
+                    },
+                    {
+                    "id": 18,
+                    "question": "在民进代表大会上代表中共中央致贺词的中央领导同志有芮杏文、丁关根、刘云山、李克强、俞正声、汪洋等。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：历次代表大会综合资料。"
+                    }
+                // 此处省略剩余17题，实际使用时补充完整
+            ],
+            "重要会议单选(20道)": [
+                {
+                    "id": 1,
+                    "question": "中国民主促进会第一次全国代表大会召开的时间是（）。",
+                    "options": ["A、1950年4月", "B、1955年1月", "C、1958年12月", "D、1960年2月"],
+                    "answer": "A、1950年4月",
+                    "basis": "依据：1950年4月15日至25日，中国民主促进会第一次全国代表大会在上海召开。"
+                },
+                    {
+                    "id": 2,
+                    "question": "1946年1月2日，民进召开了第二次会员大会，选举产生了第一届理事会，选举的选票上一共有（ ）人。",
+                    "options": ["A、26", "B、33", "C、44", "D、68"],
+                    "answer": "C、44",
+                    "basis": "依据：1946年1月2日，民进召开了第二次会员大会，出席会议的有33人。当时会议所发的选票上有44位会员的名字。"
+                    },
+                    {
+                    "id": 3,
+                    "question": "1946年2月3日，民进在上海召开了第三次会员大会，主要讨论民进的组织工作和加强宣传的问题。在宣传方面，大会通过了两项决议，一是加强国际宣传，二是（ ）。",
+                    "options": ["A、组织稿件", "B、组织补习班，训练民主运动的干部人才", "C、加强人际宣传"],
+                    "answer": "B、组织补习班，训练民主运动的干部人才",
+                    "basis": "依据：1946年2月3日，民进在上海召开了第三次会员大会，主要讨论民进的组织工作和加强宣传的问题。在宣传方面，大会通过了两项决议：一、加强国际宣传；二、组织补习班，训练民主运动的干部人才。"
+                    },
+                    {
+                    "id": 4,
+                    "question": "1946年3月17日，民进召开了第四次会员大会，会议着重讨论了在新形势下民进的（ ），马叙伦作了题为《民进工作纲要》的报告。",
+                    "options": ["A、活动方式和活动规则", "B、斗争方向和斗争策略", "C、组织工作和宣传工作"],
+                    "answer": "B、斗争方向和斗争策略",
+                    "basis": "依据：民进于3月17日召开了第四次会员大会。参加这次大会的共有47人。会议着重讨论了在新形势下民进的斗争方向和斗争策略，马叙伦作了题为《民进工作纲要》的重要报告。"
+                    },
+                    {
+                    "id": 5,
+                    "question": "1947年2月9日，民进召开了第五次会员大会，大会讨论了今后民进的行动原则和自身建设问题，大会认为，由于环境恶劣，会员大会不易召集，理事会也不能常与会员联系，故以后活动（ ），由各理事分头召集，每月一次。",
+                    "options": ["A、以通信为主", "B、分小组进行", "C、以若干组联合进行"],
+                    "answer": "B、分小组进行",
+                    "basis": "依据：1947年2月9日，民进召开了第五次会员大会。由于环境恶劣，出席这次会议的会员仅39人，大会讨论了今后民进的行动原则和自身建设问题，大会认为，由于环境恶劣，会员大会不易召集，理事会也不能常与会员联系，故以后活动分小组进行，由各理事分头召集，每月一次。这次会议总结了过去的斗争经验，分析了形势，提出了今后的任务，同时选出了新的领导，作出了发展新会员、进一步加强会内团结和联系以加强组织发展、扩大战斗力等重要决定，这对发展以后的斗争具有十分重要的意义。"
+                    },
+                    {
+                    "id": 6,
+                    "question": "1950年民进第一次全国代表大会通过的（ ），决定了民进在新中国成立之后的去存问题。",
+                    "options": ["A、《关于本会应继续存在并加强工作的决议》", "B、《关于接受<人民政治协商会议共同纲领>为本会纲领的决议》", "C、《接受中国共产党的领导并学习中共<加强与非党群众及民主人士团结合作>的精神以巩固扩大民主统一战线的决议》"],
+                    "answer": "A、《关于本会应继续存在并加强工作的决议》",
+                    "basis": "依据：决议指出,本会会章上规定过,\"本会至民主政治完成时经大会提议通过并宣告结束\"。现在检讨过去我们对于民主统一战线的认识和理解，其实根本不完全，确有重新估价的必要。新的事实指出,中华人民共和国就是人民民主统一战线的最高组织形式，而民主统一战线也就是我们人民共和国的实质，人民共和国和人民民主统一战线有不可分离的关系。为着拥护巩固人民民主的新中国，就必须拥护巩固人民民主统一战线。削弱人民民主统一战线，也就是削弱了我们人民共和国的基础,本会既然是全国人民民主统一战线构成分子之一，在人民革命的形势还迫切需要人民民主统一战线的今日，如果自己宣告结束，就会直接削弱了人民民主统一战线的力量。因此，本会第一届全国代表大会一致决议，为了巩固与扩大人民民主统一战线，为了提高自己对于人民革命事业的贡献，本会不但不应该结束，而且还要更加努力，设法从各方面来充实自己的内容，加强自己的工作。"
+                    },
+                    {
+                    "id": 7,
+                    "question": "民进第一次全国代表大会通过的会章明确规定，民进\"以（ ）为纲领，以团结自由职业者及工商界人士，巩固人民民主统一战线，加强人民民主专政，积极参加新民主主义建设，贯彻实现共同纲领为宗旨。\"",
+                    "options": ["A、《中国人民政治协商会议共同纲领》", "B、民进章程", "C、《各民主党派联合宣言》"],
+                    "answer": "A、《中国人民政治协商会议共同纲领》",
+                    "basis": "依据：根据《关于接受人民政治协商会议共同纲领为本会纲领的决议》，大会通过的会章也作出了民进\"以中国人民政治协商会议共同纲领为纲领，以团结自由职业者及工商界人士，巩固人民民主统一战线，加强人民民主专政，积极参加新民主主义建设，贯彻实现共同纲领为宗旨\"的明确规定。"
+                    },
+                    {
+                    "id": 8,
+                    "question": "1960年7月25日至9月6日，民进在北京召开五届二中全会（扩大）会议。会议采用了\"三自\"\"三不\"的方式进行，开得生动活泼。\"三自\"是指（ ）。",
+                    "options": ["A、自己提出问题自己分析问题自己解决问题", "B、自我教育自我批评自我剖析", "C、自我检查自我分析自我反省"],
+                    "answer": "A、自己提出问题自己分析问题自己解决问题",
+                    "basis": "依据：会议采用了以\"三自\"\"三不\"即由自己提出问题、自己分析问题、自己解决问题，不扣帽子、不打棍子、不抓辫子的\"神仙会\"的方式进行，开得生动活泼，收到了很好的成效。"
+                    },
+                    {
+                    "id": 9,
+                    "question": "（ ）年10月11日至22日，民进第四次全国代表大会在北京召开，确立了民进在新的历史时期的工作方针和任务，提出：团结全体会员，协助党和政府落实政策，调动会员积极性，为加速社会主义现代化建设和完成祖国统一大业贡献力量。",
+                    "options": ["A、1978", "B、1979", "C、1980", "D、1981"],
+                    "answer": "B、1979",
+                    "basis": "依据：1979年10月11日至22日，中国民主促进会第四次全国代表大会在北京召开。"
+                    },
+                    {
+                    "id": 10,
+                    "question": "民进第四次全国代表大会是在距民进第三次全国代表大会21年之后召开的。粉碎\"四人帮\"后，特别是中共十一届三中全会之后，中共恢复了实事求是的马克思主义正确路线，作出了（ ）转移的伟大决策，全国政治经济形势发生了巨大深刻的变化，统一战线也进入了一个新的发展阶段。广大民进会员在新形势下，精神振奋，为社会主义建设服务的积极性极为高涨。",
+                    "options": ["A、工作重点", "B、工作方针", "C、工作策略"],
+                    "answer": "A、工作重点",
+                    "basis": "依据：1979年10月11日至22日，中国民主促进会第四次全国代表大会在北京召开。这次大会是在距民进三大21年之后召开的。粉碎\"四人帮\"后，特别是中共十一届三中全会之后，中共恢复了实事求是的马克思主义正确路线，作出了工作重点转移的伟大决策，全国政治经济形势发生了巨大深刻的变化，统一战线也进入了一个新的发展阶段。广大民进会员在新形势下，精神振奋，为社会主义建设服务的积极性极为高涨。民进第四次全国代表大会就是在这样的背景下召开的。"
+                    },
+                    {
+                    "id": 11,
+                    "question": "1979年民进第四次全国代表大会选举（ ）为中国民主促进会中央委员会主席。",
+                    "options": ["A、雷洁琼", "B、周建人", "C、叶圣陶", "D、谢冰心"],
+                    "answer": "B、周建人",
+                    "basis": "依据：大会选举产生了第六届中央委员会。新一届中央委员会由99名中央委员、19名候补中央委员组成。六届一中全会选举产生了有29人组成的中央常务委员会，选举周建人为民进中央主席，叶圣陶、徐伯昕、赵朴初、吴贻芳、雷洁琼、谢冰心、吴若安为副主席，葛志成为秘书长。"
+                    },
+                    {
+                    "id": 12,
+                    "question": "在十年动乱中，民进组织遭到严重破坏。1979年民进恢复活动后，经过近两年时间的恢复整顿，各级组织的会务工作逐渐正常，但会员年龄偏高，基层组织不健全，骨干力量不足的\"老、散、弱\"现象依然严重存在。民进四大为适应新形势的需要，及时提出加强（ )这一项重要工作。",
+                    "options": ["A、自身组织建设", "B、自身制度建设", "C、自身思想建设"],
+                    "answer": "A、自身组织建设",
+                    "basis": "依据：为适应新形势的需要，民进第四次全国代表大会及时将加强自身组织建设作为一项重要工作提出，要求各级组织在完成整顿和恢复基层组织的基础上，要着重加强领导班子建设，并且有计划地吸收新会员，扩大组织队伍。针对这种情况，1980年9月，民进中央作出《关于发展组织工作的暂行办法》，要求各级重视组织发展工作，积极行动，吸收符合入会条件的同志入会。"
+                    },
+                    {
+                    "id": 13,
+                    "question": "1983年民进第五次全国代表大会在北京召开。中央常务委员会第一次会议根据新通过的会章规定，决定成立（ ），负责处理中央日常的重要工作，由陈舜礼担任主任。",
+                    "options": ["A、执行局", "B、参议委员会", "C、办公厅"],
+                    "answer": "A、执行局",
+                    "basis": "依据：在民进第七届中央常务委员会第一次会议上，根据新会章规定，决定成立执行局，负责处理中央日常的重要工作。会议推举陈舜礼为执行局主任，葛志成、叶至善、楚庄、吴荣为委员。"
+                    },
+                    {
+                    "id": 14,
+                    "question": "1987年6月5日，民进全国代表会议在北京召开。为了使一批德高望重，为民进组织建设和发展作出重大贡献的老同志继续在会内发挥积极作用，会议决定设立中央名誉主席，并设置顾问机构（ ）。",
+                    "options": ["A、民进中央执行局", "B、民进中央参议委员会", "C、民进中央专门委员会", "D、民进中央特邀研究员"],
+                    "answer": "B、民进中央参议委员会",
+                    "basis": "依据：民进全国代表会议决定设立中央名誉主席，并设置顾问机构——民进中央参议委员会。"
+                    },
+                    {
+                    "id": 15,
+                    "question": "在民进中央参议委员会第一次全体会议上，推举（ ）为中央参议委员会主席。",
+                    "options": ["A、赵朴初", "B、葛志成", "C、陈舜礼"],
+                    "answer": "A、赵朴初",
+                    "basis": "依据：民进全国代表会议选举了由38人组成的第一届中央参议委员会。在民进中央参议委员会第一次全体会议上，推举赵朴初为中央参议委员会主席。"
+                    },
+                    {
+                    "id": 16,
+                    "question": "1984年7月，周建人主席在北京病逝。同年9月，（ ）出任民进中央代主席，12月在民进七届二中全会上当选为民进第三任中央主席。",
+                    "options": ["A、叶圣陶", "B、雷洁琼", "C、赵朴初"],
+                    "answer": "A、叶圣陶",
+                    "basis": "依据：叶圣陶在1979年民进四大上当选为民进中央副主席，1984年9月任民进中央代主席，12月在民进七届二中全会上当选为民进第三任中央主席。1987年6月任民进中央名誉主席。"
+                    },
+                    {
+                    "id": 17,
+                    "question": "1988年11月，民进第六次全国代表大会在北京召开。会议推举（ ）为民进中央名誉主席。",
+                    "options": ["A、赵朴初", "B、雷洁琼", "C、谢冰心"],
+                    "answer": "C、谢冰心",
+                    "basis": "依据：由于叶圣陶名誉主席于1988年2月16日在北京逝世，民进第六次全国代表大会一致推举谢冰心为民进中央名誉主席。"
+                    },
+                    {
+                    "id": 18,
+                    "question": "在民进（ ）上，由于本会情况的发展变化，会议决定不再设立民进中央参议委员会，不再设候补中央委员。",
+                    "options": ["A、第七次全国代表大会", "B、第八次全国代表大会", "C、第九次全国代表大会"],
+                    "answer": "B、第八次全国代表大会",
+                    "basis": "依据：第八次全国代表大会认为，本会中央参议委员会是一个过渡机构，过去在咨询、参议等方面做了大量工作，发挥了积极作用，考虑到这部分同志年事已高以及本会情况的变化和发展，中央参议委员会也完成了它的历史使命，今后不再设立参议委员会。"
+                    },
+                    {
+                    "id": 19,
+                    "question": "民进十一大报告指出，民进全会以中国特色社会主义理论体系为指导，努力建设适应时代要求的高素质参政党，始终坚持了（ ）的工作方针。",
+                    "options": ["A、\"举全会之力、集全会之智\"", "B、\"以新作为巩固老阵地，在顺势中开拓新领域\"", "C、\"有思有行、集智聚力、顺势而为、开拓创新\""],
+                    "answer": "C、\"有思有行、集智聚力、顺势而为、开拓创新\"",
+                    "basis": "依据：严隽琪致开幕词。她说，民进十大以来，会中央团结带领广大会员，以中国特色社会主义理论体系为指导，坚持与中国共产党在思想上同心同德、在目标上同心同向、在行动上同心同行，按照\"有思有行、集智聚力、顺势而为、开拓创新\"的工作方针，认真履行职能，加强自身建设，各方面都取得了新的成就。"
+                    },
+                    {
+                    "id": 20,
+                    "question": "民进（ ）大工作报告指出，\"道路认同、目标认同价值观认同\"，这是民进的政治选择，是精神动力和思想统一的标准；\"为执政党助力、为国家尽责、为人民服务\"，这是民进履职尽责的宗旨；\"有思有行，集智聚力，顺势而为，开拓创新\"，这是民进的工作方针。",
+                    "options": ["A、九", "B、十", "C、十一", "D、十二"],
+                    "answer": "D、十二",
+                    "basis": "依据：民进十二大工作报告指出，\"道路认同、目标认同、价值观认同\"，这是民进的政治选择，是精神动力和思想统一的标准；\"为执政党助力、为国家尽责、为人民服务\"，这是民进履职尽责的宗旨；\"有思有行，集智聚力，顺势而为，开拓创新\"，这是民进的工作方针。"
+                    }
 
-def run_special_answer():
-    """运行专项答题模式"""
-    category = display_category_menu()
-    questions = get_question_by_category(category)
-    print(f"\n您选择了【{category}】，共{len(questions)}题，将按顺序答题！")
-    input("按下回车键开始答题...")
-    
-    correct_count = 0
-    for i, question in enumerate(questions, 1):
-        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
-        is_correct, user_ans = answer_question(category, question)
-        if is_correct:
-            correct_count += 1
+                // 此处省略剩余19题，实际使用时补充完整
+            ],
+            "重要会议多选(10道)": [
+                {
+                    "id": 1,
+                    "question": "民进第四次全国代表大会的主要成果包括（）。",
+                    "options": [
+                        "A、通过了新的章程",
+                        "B、明确了参政党定位",
+                        "C、选举产生了新一届中央领导机构",
+                        "D、提出了“坚定不移跟党走，尽心竭力为四化”的行动纲领"
+                    ],
+                    "answer": "A、通过了新的章程,C、选举产生了新一届中央领导机构,D、提出了“坚定不移跟党走，尽心竭力为四化”的行动纲领",
+                    "basis": "依据：1979年10月，民进第四次全国代表大会召开，通过了新的章程，选举产生了新一届中央领导机构，并提出了“坚定不移跟党走，尽心竭力为四化”的行动纲领。"
+                },
+                    {
+                    "id": 2,
+                    "question": "关于民进召开的第二次会员大会，以下选项中正确的是（ ）。",
+                    "options": [
+                        "A、开会时间是1946年1月2日",
+                        "B、出席会议的有44人",
+                        "C、大会选举马叙伦等11人为第一届理事会理事，傅雷、许广平、张凤举三人为候补理事",
+                        "D、一致通过了《中国民主促进会对于时局的宣言》"
+                    ],
+                    "answer": "A、开会时间是1946年1月2日,C、大会选举马叙伦等11人为第一届理事会理事，傅雷、许广平、张凤举三人为候补理事,D、一致通过了《中国民主促进会对于时局的宣言》",
+                    "basis": "依据：1946年1月2日（即成立大会后的第三天），中国民主促进会召开了第二次会员大会，出席会议的有33人。大会进行了两项议程：一、选举马叙伦等11人为第一届理事会理事，傅雷、许广平、张凤举三人为候补理事；二、一致通过了《中国民主促进会对于时局的宣言》。当时会议所发的选票上有44位会员的名字。《中国民主促进会对于时局的宣言》是民进成立后公开发表的第一篇宣言。《宣言》全面阐述了民进对国际国内形势的立场观点，公开宣布了自己的政治主张，提出了具体的八点政治主张。"
+                    },
+                    {
+                    "id": 3,
+                    "question": "1946年2月3日，民进在上海召开了第三次会员大会，会议主要讨论民进的（ ）和（ ）问题。",
+                    "options": [
+                        "A、组织发展",
+                        "B、活动方式",
+                        "C、组织工作",
+                        "D、加强宣传"
+                    ],
+                    "answer": "C、组织工作,D、加强宣传",
+                    "basis": "依据：1946年2月3日，民进在上海召开了第三次会员大会。会议主要讨论民进的组织工作和加强宣传的问题。"
+                    },
+                    {
+                    "id": 4,
+                    "question": "对于民进第四次会员大会，叙述正确的是（ ）。",
+                    "options": [
+                        "A、1946年3月17日召开",
+                        "B、参加大会的有44人",
+                        "C、马叙伦作了题为《民进工作纲要》的重要报告",
+                        "D、通过了参与发起组织上海市人民团体联合会的重要决议"
+                    ],
+                    "answer": "A、1946年3月17日召开,C、马叙伦作了题为《民进工作纲要》的重要报告,D、通过了参与发起组织上海市人民团体联合会的重要决议",
+                    "basis": "依据：民进于1946年3月17日召开了第四次会员大会，参加这次大会的共有47人。会议着重讨论了在新形势下民进的斗争方向和斗争策略，马叙伦作了题为《民进工作纲要》的重要报告，会议通过了参与发起组织上海市人民团体联合会的重要决议。"
+                    },
+                    {
+                    "id": 5,
+                    "question": "对于民进第五次会员大会叙述正确的是（ ）。",
+                    "options": [
+                        "A、1947年2月9日召开",
+                        "B、由于环境恶劣，出席这次会议的会员仅39人",
+                        "C、严景耀、马叙伦分别向大会作了国际和国内形势报告",
+                        "D、大会讨论了今后民进的行动原则和自身建设问题",
+                        "E、会议决定以后活动分小组进行，由各理事分头召集，每月一次"
+                    ],
+                    "answer": "A、1947年2月9日召开,B、由于环境恶劣，出席这次会议的会员仅39人,C、严景耀、马叙伦分别向大会作了国际和国内形势报告,D、大会讨论了今后民进的行动原则和自身建设问题,E、会议决定以后活动分小组进行，由各理事分头召集，每月一次",
+                    "basis": "依据：1947年2月9日，民进召开了第五次会员大会。由于环境恶劣，出席这次会议的会员仅39人，不到全体会员的五分之二。马叙伦、王绍鏊、许广平、周建人、严景耀、徐伯昕、朱绍文、李平心、柯灵、谢仁冰等出席了会议。陈巳生任大会主席。王绍鏊代表第一届理事会向大会作会务报告。严景耀、马叙伦分别向大会作了国际和国内形势报告。大会并讨论了今后民进的行动原则和自身建设问题，大会认为，由于环境恶劣，会员大会不易召集，理事会也不能常与会员联系，故以后活动分小组进行，由各理事分头召集，每月一次。这次会议总结了过去的斗争经验，分析了形势，提出了今后的任务，同时选出了新的领导，作出了发展新会员、进一步加强会内团结和联系以加强组织发展、扩大战斗力等重要决定，这对发展以后的斗争具有十分重要的意义。"
+                    },
+                    {
+                    "id": 6,
+                    "question": "关于民进第一次全国代表大会正确的叙述是（ ）。",
+                    "options": [
+                        "A、1950年4月15日在上海召开",
+                        "B、出席大会的代表共43人",
+                        "C、大会认真总结民进在民主革命时期的工作和经验，充分认识当前的形势，明确在新历史时期民进的地位、任务和作用",
+                        "D、选举产生了新的领导机构"
+                    ],
+                    "answer": "B、出席大会的代表共43人,C、大会认真总结民进在民主革命时期的工作和经验，充分认识当前的形势，明确在新历史时期民进的地位、任务和作用,D、选举产生了新的领导机构",
+                    "basis": "依据：1950年4月15日，民进第一次全国代表大会在北京召开。出席民进一大的代表共43人，其中民进总部代表12人，上海分会代表17人，华南分会代表5人，出席中国人民政治协商会议代表被邀请为大会代表者4人，北方会员代表5人。大会的主要议题是总结民进在民主革命时期的工作和经验，充分认识当前的形势，明确在新历史时期民进的地位、任务和作用，选举产生新的领导机构。"
+                    },
+                    {
+                    "id": 7,
+                    "question": "关于民进第二次全国代表大会的叙述正确的是（ ）。",
+                    "options": [
+                        "A、1956年8月11日至23日，民进第二次全国代表大会在北京举行。",
+                        "B、出席大会的正式代表216名，列席56人，来自全国21个大中城市。",
+                        "C、这次大会是在\"长期共存、互相监督\"八字方针指导下召开的。",
+                        "D、这次大会以无记名投票方式选举产生了新的中央领导机构——第四届中央理事会。"
+                    ],
+                    "answer": "A、1956年8月11日至23日，民进第二次全国代表大会在北京举行。,B、出席大会的正式代表216名，列席56人，来自全国21个大中城市。,C、这次大会是在\"长期共存、互相监督\"八字方针指导下召开的。",
+                    "basis": "依据：1956年8月11日至23日，中国民主促进会第二次全国代表大会在北京举行。这次大会是在国家对生产资料私有制的社会主义改造取得决定性胜利，社会主义建设新高潮即将到来之际，在中共中央重视知识分子工作、提出与民主党派实行\"长期共存、互相监督\"方针以后的新形势下召开的。出席大会的正式代表216名，列席56人，来自全国21个大中城市。大会主要议程是：检查和总结过去六年的工作，在深刻认识\"长期共存、互相监督\"方针的基础上，确定今后的工作方针和任务，修订会的章程，选举新的中央领导机构。民进一代大会选出的中央领导机构称中央理事会，其办公机关称总部。二代大会议后中央领导机构称中央委员会，总部改称中央机关。"
+                    },
+                    {
+                    "id": 8,
+                    "question": "1960年7月25日至9月6日，民进在北京召开五届二中全会（扩大）会议。会议采用了以\"三自\"\"三不\"的方式进行，开得生动活泼。\"三不\"是指（ ）（ ）、（ ）。",
+                    "options": [
+                        "A、不扣帽子",
+                        "B、不打棍子",
+                        "C、不抓辫子",
+                        "D、不算老账"
+                    ],
+                    "answer": "A、不扣帽子,B、不打棍子,C、不抓辫子",
+                    "basis": "依据：民进五届二中全会（扩大）会议采用了以\"三自\"、\"三不\"即由自己提出问题、自己分析问题、自己解决问题，不扣帽子、不打棍子、不抓辫子的\"神仙会\"的方式进行，开得生动活泼，收到了很好的成效。"
+                    },
+                    {
+                    "id": 9,
+                    "question": "关于民进第四次全国代表大会的叙述正确的是（ ）。",
+                    "options": [
+                        "A、1979年10月11日至22日",
+                        "B、这次大会是在距民进三大20年之后召开的",
+                        "C、新一届中央委员会由99名中央委员、19名候补中央委员组成",
+                        "D、周建人为民进中央主席，叶圣陶、徐伯昕、赵朴初、吴贻芳、雷洁琼、谢冰心、吴若安为副主席，葛志成为秘书长"
+                    ],
+                    "answer": "A、1979年10月11日至22日,C、新一届中央委员会由99名中央委员、19名候补中央委员组成,D、周建人为民进中央主席，叶圣陶、徐伯昕、赵朴初、吴贻芳、雷洁琼、谢冰心、吴若安为副主席，葛志成为秘书长",
+                    "basis": "依据：依据：1979年10月11日至22日，中国民主促进会第四次全国代表大会在北京召开。这次大会是在距民进三大21年之后召开的。中共十一届三中全会之后，中共恢复了实事求是的马克思主义正确路线，作出了工作重点转移的伟大决策，全国政治经济形势发生了巨大深刻的变化，统一战线也进入了一个新的发展阶段。民进第四次全国代表大会就是在这样的背景下召开的。出席这次大会的正式代表248人，列席32人，来自中央和19个地方组织。大会的主要议题是：以中共十一届三中全会方针作指导，贯彻五届全国人大和全国政协五届二次会议精神，总结民进三大以来的工作，并根据新时期总任务的要求，确定今后的方针任务，修改会章，选举新的中央领导机构，团结全体会员，为加速社会主义现代化建设和完成祖国统一大业贡献力量。大会选举产生了第六届中央委员会。新一届中央委员会由99名中央委员、19名候补中央委员组成。六届一中全会选举产生了有29人组成的中央常务委员会，选举周建人为民进中央主席，叶圣陶、徐伯昕、赵朴初、吴贻芳、雷洁琼、谢冰心、吴若安为副主席，葛志成为秘书长。"
+                    },
+                    {
+                    "id": 10,
+                    "question": "关于民进全国代表会议正确的叙述是（ ）。",
+                    "options": [
+                        "A、1987年6月5日在北京举行",
+                        "B、在开幕式上习仲勋同志代表中共中央对会议的召开表示热烈祝贺",
+                        "C、会议决定设立中央名誉主席，并设置顾问机构——民进中央参政议政委员会",
+                        "D、一致选举叶圣陶为民进中央名誉主席，选举雷洁琼为民进中央主席"
+                    ],
+                    "answer": "A、1987年6月5日在北京举行,B、在开幕式上习仲勋同志代表中共中央对会议的召开表示热烈祝贺,D、一致选举叶圣陶为民进中央名誉主席，选举雷洁琼为民进中央主席",
+                    "basis": "依据：1987年6月5日，民进全国代表会议在北京举行。363名代表出席了全国代表会议，在开幕式上习仲勋同志代表中共中央对会议的召开表示热烈祝贺。在统一认识的基础上，对中央领导机构作了局部调整。会议递补14名中央候补委员为中央委员；新增选31人为第七届中央委员会委员，补选22人为第七届中央委员会候补委员。会议决定设立中央名誉主席，并设置顾问机构——民进中央参议委员会。会议选举了由38人组成的第一届中央参议委员会。6月11日，第七届中央委员会举行第五次全体会议，一致选举叶圣陶为民进中央名誉主席，选举雷洁琼为民进中央主席。同日，中央参议委员会举行第一次全体会议，一致推举赵朴初副主席兼任民进中央参议委员会主席，推举吴若安、张明养、柯灵、董纯才、潘承孝为副主席。民进全国代表会议是民进历史上一次特殊的会议，是民进\"为实现中央领导机构的新老合作交替而采取的非常措施\"。"
+                    }
+                // 此处省略剩余9题，实际使用时补充完整
+            ],
+            
+            // 三、重要史实类
+            "重要史实判断题(14道)": [
+                {
+                    "id": 1,
+                    "question": "1946年6月23日发生的下关事件中，民进代表马叙伦、雷洁琼等人在赴南京请愿途中遭到国民党特务殴打。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1946年6月23日，上海人民团体联合会组织请愿团赴南京呼吁和平，民进代表马叙伦、雷洁琼等在南京下关车站遭到国民党特务围攻殴打，造成震惊全国的下关事件。"
+                },
+                    {
+                    "id": 2,
+                    "question": "1946年2月9日，民进通过报纸向中华职教社、救国会上海分会，民盟、民建的在沪组织等6个党派团体正式发出了在上海\"发起民主同盟式的联合组织，以推动实现民主政治\"的倡议。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1946年2月9日，民进通过报纸向中华职教社、救国会上海分会，民盟、民建的在沪组织等6个党派团体正式发出了在上海\"发起民主同盟式的联合组织，以推动实现民主政治\"的倡议。由于当时民进在上海民主运动中的表现和作用，已在事实上成为上海民主运动的中坚力量，在群众中享有较高的声誉，因此各团体和广大市民群众都希望民进能进一步发挥作用，把大家联络团结起来。"
+                    },
+                    {
+                    "id": 3,
+                    "question": "中国境内的第二条战线指的是国民党统治区人民的爱国民主运动。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：随着解放战争时期历史进程的发展，毛泽东关于解放战争\"两条战线\"的论断也逐渐形成。第二条战线，是指国民党统治区人民的爱国民主运动。在解放战争时期，国民党统治区广大爱国学生、工人、市民及其它阶层人民，在中国共产党领导下，反对美军暴行，反对蒋介石政权的内战、独裁、卖国政策的爱国民主运动，相对于中国共产党领导的人民武装反对国民党军队的军事斗争战线，被称作第二条战线。"
+                    },
+                    {
+                    "id": 4,
+                    "question": "1946年和1948年在民主力量内部发生了两次中间路线的论战。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：全面内战爆发后，国共和谈大门彻底关闭，和平的希望渺茫，反动独裁的阴霾又一次笼罩在渴望和平与安宁的中国人民的头上。曾以第三方面姿态出现的各民主党派不得不面对现实，思考今后何去何从的问题,于是\"中间路线\"的思想出现了。1946年底，围绕中间路线，民主力量内部发生了一场深刻的讨论。这场讨论涉及面很广，各民主党派的代表人物都发表了意见，民进、民盟、民建等党派还在内部开展讨论，一些中间阶层的民主人士也参加了讨论，称作第一次中间路线的论战，我会前辈马叙伦、李平心在论战中发挥了积极的作用。1948年所谓\"新的第三势力\"又在美蒋扶植下，挑起了一场新的关于\"中间路线\"的大讨论。关于\"中间路线\"问题的第二次大讨论，与第一次不同，这次讨论不是发生在民主力量内部，而是发生在各民主党派与国民党御用文人和学者之间，是各民主党派以统一的姿态对所谓\"新的第三势力\"的政治阴谋的一次揭露。"
+                    },
+                    {
+                    "id": 5,
+                    "question": "1947年2月9日，民进召开的第五次会员大会选举产生了第五届理事会。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：1947年2月9日，民进召开了第五次会员大会。大会选举产生了第二届理事会，马叙伦、王绍鏊、许广平、周建人、陈巳生、李平心、徐伯昕、严景耀、朱绍文九人为理事，柯灵、郑振铎、蔡尚思、余之介、董秋斯为候补理事。因严景耀即将离沪，大会当即决议由柯灵替补为理事。"
+                    },
+                    {
+                    "id": 6,
+                    "question": "中国共产党发布五一口号后，各党派团体积极响应，中国民主促进会还单独发表《宣言》，这是民进的重要历史性文件，它首次公开庄严宣布接受中国共产党的领导，参加共产党领导的爱国民主统一战线，为彻底反对帝国主义、封建主义、官僚资本主义而奋斗。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：应为\"团结在中国共产党的周围\"。"
+                    },
+                    {
+                    "id": 7,
+                    "question": "1948年7月17日至31日，民进在港理事召开会议，讨论新政协施政纲要。通过了《关于时局的声明》这一文件全面地、具体地提出了民进的各项政治主张。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：应为《中国民主促进会拟提出于政治协商会议之行动公约及政治纲领》。"
+                    },
+                    {
+                    "id": 8,
+                    "question": "1949年1月中旬，严景耀、雷洁琼夫妇受在哈尔滨马叙伦的委请，到西柏坡出席中共中央召开的有关民主党派的会议，受到中共中央领导毛泽东、刘少奇、朱德、周恩来、任弼时等的亲切接见，毛泽东并与严景耀、雷洁琼夫妇作了彻夜长谈。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1949年1月中旬，在燕大任教的严景耀、雷洁琼夫妇，受在哈尔滨马叙伦的委请，到西柏坡出席中共中央召开的有关民主党派的会议。他们同时接受中国人民解放军第四野战军的邀请，参观访问了华北解放区。在西柏坡，严景耀、雷洁琼夫妇受到了中共中央领导毛泽东、刘少奇、朱德、周恩来、任弼时等的亲切接见，毛泽东并与严景耀、雷洁琼夫妇作了彻夜长谈，使他们受到巨大鼓舞和教育。"
+                    },
+                    {
+                    "id": 9,
+                    "question": "在中国人民政治协商会议筹备工作期间，马叙伦只参加了第六小组，拟定国旗、国徽、国歌方案，为该组组长。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：马叙伦也参加了第一小组，拟定参加中国人民政治协商会议之单位及其代表名额。"
+                    },
+                    {
+                    "id": 10,
+                    "question": "1949年9月25日晚，马叙伦出席了由毛泽东、周恩来在中南海丰泽园召开的座谈会。马叙伦提议用《义勇军进行曲》暂代国歌，与会者一致赞同。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：9月25日晚，毛泽东、周恩来在中南海丰泽园召开座谈会，听取关于国旗、国徽、国歌、纪年、国都问题的意见。郭沫若、沈雁冰、马叙伦、田汉等出席了座谈会。马叙伦提议用《义勇军进行曲》暂代国歌，他说：\"我们的政府就要成立，而国歌根据目前情况一下子是制作不出来的，是否我们可暂时用《义勇军进行曲》暂代国歌。\"许多委员表示赞成，也有的委员提出需要修改歌词。周恩来表示，就用原来的歌词，他说：\"这样才能鼓动情感，修改后，唱起来就不会有那种情感。\"毛泽东也同意歌词不改。与会者一致赞同，在中华人民共和国的国歌未正式制定以前，以《义勇军进行曲》为代国歌。最后，毛泽东、周恩来与马叙伦等与会者一起合唱了《义勇军进行曲》。（见于《毛泽东传》）"
+                    },
+                    {
+                    "id": 11,
+                    "question": "1949年9月25日晚，毛泽东、周恩来在中南海丰泽园召开座谈会，听取关于国旗、国徽、国歌、纪年、国都问题的意见。与会的田汉提议用《义勇军进行曲》暂代国歌。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：1949年9月25日晚，毛泽东、周恩来在中南海丰泽园召开座谈会，听取关于国旗、国徽、国歌、纪年、国都问题的意见。郭沫若、沈雁冰、马叙伦、田汉等出席了座谈会。马叙伦提议用《义勇军进行曲》暂代国歌，许多委员表示赞成，也有的委员提出需要修改歌词。周恩来表示，就用原来的歌词，他说：\"这样才能鼓动情感，修改后，唱起来就不会有那种情感。\"毛泽东也同意歌词不改。"
+                    },
+                    {
+                    "id": 12,
+                    "question": "马叙伦向中国人民政治协商会议第一届全国委员会第一次会议提议\"请政府明定10月1日为中华人民共和国国庆日，以代替10月10日的旧国庆日\"。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：中国人民政治协商会议第一届全国委员会第一次会议于1949年10月9日在中南海勤政殿举行。马叙伦因为夜以继日地工作，身心疲惫，开国大典后在家休息。在病中他考虑到新中国应该有自己的国庆纪念日。他觉得十月一日是个很有国际意义的日子，在这一天新中国举行了开国大典，可以作为国庆日，于是他亲笔写好关于新中国国庆日的建议书并委托许广平委员向会议提出。当全国政协一届一次会议即将结束时，许广平即席请求发言，得到主席的同意后，她宣读了马叙伦常委的\"请政府明定10月1日为中华人民共和国国庆日，以代替10月10日的旧国庆日\"的建议。毛泽东即席请与会者讨论，最后一致通过了这个议案并决定送请中央人民政府采择施行。1949年12月2日，中央人民政府委员会第四次会议通过《关于中华人民共和国国庆日的决议》，宣告：\"自一九五〇年起，即以每年的十月一日，即中华人民共和国宣告成立的日子，为中华人民共和国的国庆日。\""
+                    },
+                    {
+                    "id": 13,
+                    "question": "在1949年10月9日召开的中国人民政治协商会议第一届全国委员会第一次会议上，因病缺席的马叙伦委托许广平向会议提出将10月1日作为国庆日的建议，会议当即通过了《关于中华人民共和国国庆日的决议》。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：1949年12月2日，中央人民政府委员会第四次会议通过《关于中华人民共和国国庆日的决议》。"
+                    },
+                    {
+                    "id": 14,
+                    "question": "1956年4月，毛泽东在《论十大关系》中提出中国共产党同各民主党派团结合作的\"长期共存、互相监督\"的基本方针。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1956年4月，\"三大改造\"完成后，毛泽东在《论十大关系》中提出中国共产党同各民主党派团结合作的\"长期共存、互相监督\"的基本方针。这一方针是中国共产党根据中国的具体历史条件提出的，正确地反映了中国社会的客观实际，充分表达了中国共产党与民主党派合作共事的诚恳意愿。"
+                    }
+                // 此处省略剩余13题，实际使用时补充完整
+            ],
+            "重要史实单选(35道)": [
+                {
+                    "id": 1,
+                    "question": "中国民主促进会成立的时间和地点是（）。",
+                    "options": ["A、1945年12月30日 南京", "B、1945年12月30日 上海", "C、1945年12月30日 重庆", "D、1946年1月2日 上海"],
+                    "answer": "B、1945年12月30日 上海",
+                    "basis": "依据：1945年12月30日，中国民主促进会在上海正式宣告成立。"
+                },
+                    {
+                    "id": 1,
+                    "question": "抗战胜利后，涌现了一些进步刊物，其中（ ）以其创刊早、发行量大、内容丰富、观点鲜明受到市民欢迎。",
+                    "options": ["A、《文萃》和《昌言》", "B、《周报》和《民主》", "C、《文汇报》和《大共和日报》"],
+                    "answer": "B、《周报》和《民主》",
+                    "basis": "依据：抗战胜利后，代表人民正义呼声的进步刊物的大量创刊发行，是上海爱国民主运动蓬勃发展的一个重要标志。其中《周报》和《民主》以其创刊早、发行量大、内容丰富、观点鲜明受到市民欢迎。"
+                    },
+                    {
+                    "id": 2,
+                    "question": "在抗战胜利后上海四大民主刊物中，对于《周报》的主编（ ）、（ ），《民主》的一位主编（ ），依次表述正确的一组名单是（ ）。",
+                    "options": ["A、柯灵唐弢马叙伦", "B、柯灵唐弢郑振铎", "C、柯灵唐弢徐伯昕"],
+                    "answer": "B、柯灵唐弢郑振铎",
+                    "basis": "依据：在抗战胜利后上海四大民主刊物中，《周报》的主编是柯灵和唐弢，《民主》的主编是郑振铎。"
+                    },
+                    {
+                    "id": 3,
+                    "question": "对于马叙伦和王绍鏊所联系的两支民主力量首次聚会的地点和后来转移到的地点表述正确的选项是（ ）。",
+                    "options": ["A、北京西路的广和居楼上八仙桥青年会礼堂", "B、郑振铎在庙弄的家中八仙桥原联华银行八仙桥分行", "C、民主周刊社中国科学社", "D、红棉酒家民本中学"],
+                    "answer": "A、北京西路的广和居楼上八仙桥青年会礼堂",
+                    "basis": "依据：马叙伦所联系的从事文化、出版、教育等工作的爱国民主人士和王绍鏊所联系的上海工商界和文化界爱国民主人士两部分民主力量双方首次聚会的地点是北京西路的广和居楼上，后来又转移到八仙桥青年会礼堂。"
+                    },
+                    {
+                    "id": 4,
+                    "question": "公开表明马叙伦所联系的从事文化、出版、教育等工作的爱国民主人士和王绍鏊所联系的上海工商界和文化界爱国民主人士两部分民主力量的合作的是1945年12月中旬发表在《民主》周刊第12期上的（ ）。",
+                    "options": ["A、《关于时局的宣言》", "B、《给美国人民的公开信》", "C、《我们抗议》"],
+                    "answer": "B、《给美国人民的公开信》",
+                    "basis": "依据：表明了马叙伦所联系的从事文化、出版、教育等工作的爱国民主人士和王绍鏊所联系的上海工商界和文化界爱国民主人士两部分民主力量的合作的是1945年12月中旬发表在《民主》周刊第12期上的《给美国人民的公开信》。"
+                    },
+                    {
+                    "id": 5,
+                    "question": "正确表述中国民主促进会的时间和地点的选项是（ ）。",
+                    "options": ["A、1945年12月30日南京", "B、1945年12月30日上海", "C、1945年12月30日重庆", "D、1946年1月2日上海"],
+                    "answer": "B、1945年12月30日上海",
+                    "basis": "依据：1945年12月30日，中国民主促进会在上海正式宣告成立。1946年1月2日是民进第二次会员大会开会的时间。"
+                    },
+                    {
+                    "id": 6,
+                    "question": "中国民主促进会成立时的宗旨是（ ）。",
+                    "options": ["A、振兴中华", "B、民主和科学", "C、发扬民主精神，推进中国民主政治之实践", "D、推进民主、反对独裁，争取和平、反对内战"],
+                    "answer": "C、发扬民主精神，推进中国民主政治之实践",
+                    "basis": "依据：大会通过的中国民主促进会简章，明确规定了民进的性质、任务和组织原则。简章指出：中国民主促进会\"以发扬民主精神推进中国民主政治之实践为宗旨\"。A项（振兴中华是孙中山在《兴中会章程》中提出的），B项（民主和科学是中国新文化运动期间的两面旗帜，俗称\"德先生\"（Democracy）和\"赛先生\"（Science））以及D项均不是应选项。"
+                    },
+                    {
+                    "id": 7,
+                    "question": "出席民进成立大会签到的人数是（ ）。",
+                    "options": ["A、26", "B、25", "C、33", "D、44"],
+                    "answer": "A、26",
+                    "basis": "依据：出席成立大会签到的有26人，他们是：马叙伦、王绍鏊、林汉达、周建人、徐伯昕、赵朴初、陈巳生、梅达君、严景耀、雷洁琼、谢仁冰、冯少山、万景光、曹梁厦、张纪元、柯灵、李平心、陈慧、宓逸群、刘大杰、李玄伯、马木轩、徐彻、徐相任（徐相任系由其子徐彻代签）、章蟾华、胡国城。"
+                    },
+                    {
+                    "id": 8,
+                    "question": "民进成立后公开发表的第一篇宣言是（ ）。",
+                    "options": ["A、《我们的主张和态度》", "B、《中国民主促进会对于时局的宣言》", "C、《给美国人民的公开信》"],
+                    "answer": "B、《中国民主促进会对于时局的宣言》",
+                    "basis": "依据：《中国民主促进会对于时局的宣言》是在王绍鏊所写《意见书》的基础上，经理事会深入讨论修改后完成的。它是民进成立后公开发表的第一篇宣言。《宣言》全面阐述了民进对国际国内形势的立场观点，公开宣布了自己的政治主张。"
+                    },
+                    {
+                    "id": 9,
+                    "question": "1946年1月，在旧政协于重庆开幕的当天，民进在上海开会，专门研讨对这次会议的立场态度。翌日，民进发表（ ），公开表明对旧政协的希望和要求。",
+                    "options": ["A、《给政治协商会议建议书》", "B、《写在政治协商会议以前》", "C、《勖政治协商会议诸君》"],
+                    "answer": "A、《给政治协商会议建议书》",
+                    "basis": "依据：1946年1月l0日，旧政治协商会议在重庆开幕当天，民进在上海也召开会议，专门研讨对旧政治协商会议的立场态度。11日，民进发表《给政治协商会议建议书》，公开表明对这次会议的希望和要求。"
+                    },
+                    {
+                    "id": 10,
+                    "question": "1946年1月13日，上海各界一万多群众在玉佛寺公祭\"一二·一\"昆明惨案中遇难的于再烈士，民进以组织名义参加，常务理事（ ）（ ）（ ）及（ ）（ ）（ ）等到会。会后一万余众举行了示威游行。这一场别开生面的万人公祭大会，揭露了蒋介石的反动本质，对唤醒民众起到了积极的作用。其后，马叙伦参加了于再纪念委员会，亲自编辑出版《\"一二·一\"民主运动纪念集》。以下正确的一组名单是（ ）。",
+                    "options": ["A、马叙伦王绍鏊周建人叶圣陶许广平林汉达", "B、马叙伦王绍鏊周建人郑振铎许广平林汉达", "C、马叙伦王绍鏊陈巳生郑振铎许广平林汉达", "D、马叙伦王绍鏊陈巳生叶圣陶许广平林汉达"],
+                    "answer": "C、马叙伦王绍鏊陈巳生郑振铎许广平林汉达",
+                    "basis": "依据：1946年1月13日，上海各界一万多群众在玉佛寺公祭\"一二·一\"昆明惨案中遇难的于再烈士，民进以组织名义参加，常务理事马叙伦、王绍鏊、陈巳生及郑振铎、许广平、林汉达等到会。会后一万余众举行了示威游行。这一场别开生面的万人公祭大会，揭露了蒋介石的反动本质，对唤醒民众起到了积极的作用。其后，马叙伦参加了于再纪念委员会，亲自编辑出版《\"一二·一\"民主运动纪念集》。"
+                    },
+                    {
+                    "id": 11,
+                    "question": "1946年2月，\"较场口血案\"的消息传到上海，民进领导人立即发表了《民权到底有保障没有？》等文章，严厉谴责国民党政府的暴行。2月17日，由民进和民建、民盟上海支盟、救国会上海分会、小教联、妇女联谊会等40余团体联合举行欢迎政协代表、中国人民救国会主席沈钧儒茶会，通过联名宣言，要求政府立即实现政协会议决议案及四项诺言，电慰\"较场口事件\"受伤诸先生及严惩凶犯等。为了保障人民的基本民主权利，这次会议还一致决定发起组织（ ），并公推民进为召集人。",
+                    "options": ["A、中国人民自由保障委员会上海分会", "B、上海人民团体联合会（简称人团联）", "C、上海文化界救亡协会", "D、民主运动联席会议"],
+                    "answer": "A、中国人民自由保障委员会上海分会",
+                    "basis": "依据：1946年2月，\"较场口血案\"的消息传到上海，民进领导人立即发表了《民权到底有保障没有？》《重庆有我们的中央政府吗？》《惩办暴徒与防止日本法西斯\"卷土重来\"》《对于较场口惨案再说几句》等文章，严厉谴责国民党政府的暴行。2月17日，由民进和民建、民盟上海支盟、救国会上海分会、小教联、妇女联谊会等40余团体联合举行的欢迎政协代表、中国人民救国会主席沈钧儒茶会，通过联名宣言，要求政府立即实现政协会议决议案及四项诺言，电慰\"较场口事件\"受伤诸先生及严惩凶犯等。为了保障人民的基本民主权利，这次会议还一致决定发起组织中国人民自由保障委员会上海分会，并公推民进为召集人。"
+                    },
+                    {
+                    "id": 12,
+                    "question": "1946年，上海67个人民团体组织在中共上海地下党领导下，成立了上海人民团体联合会（简称人团联），为更大规模地开展反蒋斗争创造了条件。（ ）被各团体组织一致公推牵头负责这一联合机构的筹建工作，为人团联的创建做出了贡献。",
+                    "options": ["A、中国民主促进会", "B、中国民主建国会", "C、中国民主同盟上海支盟", "D、中华职教社"],
+                    "answer": "A、中国民主促进会",
+                    "basis": "依据：1946年1月4日，民进理事会第一次会议，马叙伦就提出要和民盟、民建的在沪组织及上海的其他党派团体加强联系合作，民盟、民建等均回复表示支持。由于当时民进在上海民主运动中的表现和作用，已在事实上成为上海民主运动的中坚力量，在群众中享有较高的声誉，因此，民进的建议立即得到各团体组织的支持和拥护，大家并一致公推由民进牵头负责这一联合机构的筹建工作。"
+                    },
+                    {
+                    "id": 13,
+                    "question": "1946年6月5日，人团联发表（ ），指出内战已经有蔓延全国的趋势，\"人民直接间接受内战的痛苦和损失，已是说不尽了\"，\"我们人民要团结起来，拒绝参加足以增加战乱的一切行动\"，\"我们要以主人的地位来制止战乱，如果谁竟敢压迫我们这样的举动，就是我们人民革命的对象！\"",
+                    "options": ["A、《反内战宣言》", "B、《我们抗议》", "C、《关于时局的宣言》"],
+                    "answer": "A、《反内战宣言》",
+                    "basis": "依据：1946年6月5日，人团联发表《反内战宣言》，指出内战已经有蔓延全国的趋势。"
+                    },
+                    {
+                    "id": 14,
+                    "question": "1946年6月5日，由( )发起，民进和其他各界知名人士马叙伦、陶行知、王绍鏊、罗叔章、唐弢、许广平、周建人、阎宝航、胡子婴、沙千里、胡绳、林汉达、郑振铎、徐伯昕、雷洁琼等164人联名上书( )、( )、民盟、青年党及中共代表( )等，呼吁停止内战。以下依次正确的一组资料是（ ）。",
+                    "options": ["A、中国民主促进会蒋介石杜鲁门董必武", "B、上海人民团体联合会蒋介石马歇尔周恩来", "C、中国人民自由保障委员会蒋介石杜鲁门周恩来", "D、上海人民团体联合会蒋介石马歇尔董必武"],
+                    "answer": "B、上海人民团体联合会蒋介石马歇尔周恩来",
+                    "basis": "依据：1946年6月5日，由上海人民团体联合会发起，民进和其他各界知名人士马叙伦、陶行知、王绍鏊、罗叔章、唐弢、许广平、周建人、阎宝航、胡子婴、沙千里、胡绳、林汉达、郑振铎、徐伯昕、雷洁琼等164人联名上书蒋介石、马歇尔、民盟、青年党及中共代表周恩来等，呼吁停止内战。"
+                    },
+                    {
+                    "id": 15,
+                    "question": "1946年6月23日，上海人民反内战暨欢送和平请愿团（又称上海人民团体代表团）赴京大会如期在北火车站举行。（ ）、（ ）、陶行知三人担任大会执行主席，（ ）、（ ）、（ ）、（ ）等走在游行队伍的前列。以下依次正确的一组资料是（ ）。",
+                    "options": ["A、王绍鏊林汉达周建人叶圣陶许广平严景耀", "B、马叙伦王绍鏊周建人叶圣陶许广平冰心", "C、王绍鏊林汉达周建人叶圣陶许广平唐弢", "D、马叙伦王绍鏊周建人叶圣陶许广平郑振铎"],
+                    "answer": "A、王绍鏊林汉达周建人叶圣陶许广平严景耀",
+                    "basis": "依据：1946年6月23日，上海人民反内战暨欢送和平请愿团（又称上海人民团体代表团）赴京大会如期在北火车站举行。王绍鏊、林汉达、陶行知三人担任大会执行主席，周建人、叶圣陶、许广平、严景耀等走在游行队伍的前列。"
+                    },
+                    {
+                    "id": 16,
+                    "question": "1946年6月23日，以民进马叙伦、雷洁琼等11人为代表的请愿团赴南京向国民政府和平请愿，在火车站遭到特务暴徒的袭击，马叙伦、雷洁琼等均被严重殴伤。这就是当时震惊中外的（ ）。",
+                    "options": ["A、较场口惨案", "B、下关事件", "C、下关血案", "D、五二〇惨案"],
+                    "answer": "B、下关事件",
+                    "basis": "依据：和平请愿团乘坐的列车，由于国民党特务制造的重重障碍，上午11时开车，直到晚7时才抵达南京下关车站，代表团成员鱼贯下车后，被暴徒团团围住，伪装成\"群众\"的国民党特务对代表们大打出手，进行围攻近5小时，马叙伦被打成重伤；雷洁琼头部遭重击，胸部被重物击中，拼死保护了提包里的代表团的文件；阎宝航遍体鳞伤，血迹斑斑；学生代表陈震中受伤最重，被打时曾有人扼其喉管，险些致死；叶笃义、浦熙修、高集也均被殴伤。24日凌晨两点，代表们终于被安置在中央医院分院。这就是当时震惊中外的下关惨案（民进会史称下关事件）。"
+                    },
+                    {
+                    "id": 17,
+                    "question": "民进领导人马叙伦、雷洁琼等在\"下关事件\"中被国民党特务暴徒围攻殴打，身受重伤。中共代表（ ）等赶到医院，看望受伤代表，并说：\"你们的血是不会白流的。\"",
+                    "options": ["A、毛泽东", "B、周恩来", "C、刘少奇", "D、朱德"],
+                    "answer": "B、周恩来",
+                    "basis": "依据：被殴受伤的马叙伦等请愿代表直到24日凌晨两点才被安置在太平路的中央医院分院，在南京的中共代表团积极为营救代表奔走，当受伤代表被送到医院后不久，周恩来、董必武、滕代远、邓颖超、齐燕铭以及郭沫若等立即赶到医院，看望受伤代表，向马叙伦等表示亲切慰问。周恩来神情严肃地说：\"你们的血是不会白流的。\"马叙伦也激动地说：\"中国的希望只能寄托在你们身上。\""
+                    },
+                    {
+                    "id": 18,
+                    "question": "抗战胜利后，全面内战爆发，国共和谈大门彻底关闭，曾以第三方面姿态出现的各民主党派不得不思考今后何去何从的问题,于是\"中间路线\"的思想出现了。围绕中间路线，民主力量内部发生了一场深刻的论战。争论的实质，就是（ ）。",
+                    "options": ["A、各民主党派之间如何协调", "B、中国的革命应当由谁来领导，爱国民主力量应该依附于谁", "C、如何实现民族复兴", "D、如何制止内战"],
+                    "answer": "B、中国的革命应当由谁来领导，爱国民主力量应该依附于谁",
+                    "basis": "依据：抗战胜利后，全面内战爆发，国共和谈大门彻底关闭，曾以第三方面姿态出现的各民主党派不得不思考今后何去何从的问题,于是\"中间路线\"的思想出现了。围绕中间路线，民主力量内部发生了一场深刻的论战。争论的实质，就是中国的革命应当由谁来领导，爱国民主力量应该依附于谁。"
+                    },
+                    {
+                    "id": 19,
+                    "question": "1947年5月4日，上海学生纪念五四运动28周年，举行反内战、反饥饿示威游行，遭到国民党军警镇压，各校的学生立即罢课，掀开了全国学生运动的序幕。5月20日，民进发表（ ），谴责蒋介石挑起内战和镇压群众的罪行。就在当天，国统区内又发生了国民党武装军警残酷镇压学生的\"五二〇\"血案，消息传来，民进在文末添上了这样一段话：\"属稿才完，得到首都学生游行，军警出动阻止，竟酿成流血的不幸消息，同人非常愤怒。更信非有爱好和平的广大人民团结起来，一致呼吁和平不可。倘忍令青年学生身冒锋镝，而无动于衷，结果将不堪设想。\"",
+                    "options": ["A、《对和平运动的意见》", "B、《关于忍受的限度》", "C、《学潮平议》", "D、《我们对于最近学生运动的意见》"],
+                    "answer": "A、《对和平运动的意见》",
+                    "basis": "依据：1947年5月4日，上海学生纪念五四运动28周年，举行反内战、反饥饿示威游行，遭到国民党军警镇压，各校的学生立即罢课，掀开了全国学生运动的序幕。5月20日，民进发表《对和平运动的意见》，代表广大人民群众争取和平民主的普遍要求，谴责蒋介石挑起内战和镇压群众的罪行。就在民进发表《对和平运动的意见》的当天，国统区内又发生了国民党武装军警残酷镇压学生的\"五二〇\"血案，消息传来，民进在文末添上了一段话，以示愤怒和谴责。"
+                    },
+                    {
+                    "id": 20,
+                    "question": "1947年5月29日，由民进主稿、以上海人民团体联合会署名公开发表（ ）。这篇《宣言》，是民进在白色恐怖日趋严重之时发出的讨伐反动政府罪行的檄文。它的发表，充分表现了民进在革命斗争处于危急状态时不畏强暴，不怕迫害的大无畏精神，同时也大大鼓舞了上海各界群众的革命斗志。",
+                    "options": ["A、《关于时局的宣言》", "B、《反内战宣言》", "C、《对和平运动的意见》", "D、《对最近时事宣言》"],
+                    "answer": "D、《对最近时事宣言》",
+                    "basis": "依据：1947年5月29日，由民进主稿、以上海人民团体联合会署名公开发表《对最近时事宣言》。"
+                    },
+                    {
+                    "id": 21,
+                    "question": "在1947年9至10月间，民进和民建、民盟在沪机构及三民主义同志联合会等党派团体，曾着手推行过一项重要的工作，就是组织\"民主运动联席会议\"，多次召开会议研究该联席会议的性质、任务、机构等，并草拟了简章。但是，10月29日国民党政府悍然宣布（ ）为\"非法团体\"，明令\"严加取缔\"后，国统区白色恐怖愈趋严重，\"民主运动联席会议\"也因此被迫流产。",
+                    "options": ["A、民主同盟", "B、民进", "C、民建", "D、民主同盟、民进和民建"],
+                    "answer": "A、民主同盟",
+                    "basis": "依据：在1947年10月29日国民党政府悍然宣布民主同盟为\"非法团体\"，明令\"严加取缔\"，\"民主运动联席会议\"也因此被迫流产。"
+                    },
+                    {
+                    "id": 22,
+                    "question": "1948年，民进部分领导人撤离上海后，留在上海的常务理事（ ）、理事（ ）、（ ）及候补理事（ ）等，继续领导民进成员在白色恐怖下坚持斗争。",
+                    "options": ["A、许广平林汉达柯灵傅雷", "B、许广平周建人柯灵郑振铎", "C、马叙伦林汉达柯灵傅雷", "D、马叙伦周建人柯灵郑振铎"],
+                    "answer": "B、许广平周建人柯灵郑振铎",
+                    "basis": "依据：民进部分领导人撤离上海后，留在上海的常务理事许广平、理事周建人、柯灵及候补理事郑振铎等，继续领导民进成员在白色恐怖下坚持斗争。1948年春夏，国统区内物价飞涨，经济危机加剧，人民生活极端困难。为争取生存，全国各大中城市的学生教师率先行动起来。"
+                    },
+                    {
+                    "id": 23,
+                    "question": "1948年3月，与民进有密切联系的小教联，在理事长葛志成的带领下，联合了上海市中等教育研究会，掀起了全市规模的\"上海市各界抢救教育危机\"的斗争。周建人以学生家长身份参加了这场斗争。6月28日，小教联等团体又引导这场斗争朝（ ）的方向发展，组织了1000多名教师上街游行示威，抗议国民党对教育界的饥饿压迫政策，参加游行示威的教师们冒雨静坐街头27小时，迫使当局答应了全部条件。",
+                    "options": ["A、反饥饿、反迫害", "B、反内战、反迫害", "C、反压迫、反管制", "D、反美扶日"],
+                    "answer": "A、反饥饿、反迫害",
+                    "basis": "依据：1948年3月，与民进有密切联系的小教联，在理事长葛志成的带领下，联合了上海市中等教育研究会，掀起了全市规模的\"上海市各界抢救教育危机\"的斗争。周建人以学生家长身份参加了这场斗争。6月28日，小教联等团体又引导这场斗争朝反饥饿、反迫害的方向发展，组织了1000多名教师上街游行示威，抗议国民党对教育界的饥饿压迫政策，参加游行示威的教师们冒雨静坐街头27小时，迫使当局答应了全部条件。"
+                    },
+                    {
+                    "id": 24,
+                    "question": "1948年6月，周建人、郑振铎联合上海文化界人士114人发表了（ ），指出反美扶日运动\"是民气昂扬、舆情激愤的具体表现，完全合情合理\"，他们正告司徒雷登：中国的\"独立主权不容任何人侵犯，爱国自由不容任何人干涉！\"许广平与史良、胡子婴等联合上海妇女界知名人士300余人也发表了声明。",
+                    "options": ["A、《民主和平运动提纲》", "B、《我们对于政府压迫民盟的看法》", "C、《正告美大使书》", "D、《我们该大踏步前进》"],
+                    "answer": "C、《正告美大使书》",
+                    "basis": "依据：在沪的民进成员还积极参加了声势浩大的反对美帝扶助日本的运动。1948年6月，周建人、郑振铎联合上海文化界人士114人发表了《正告美大使书》。"
+                    },
+                    {
+                    "id": 25,
+                    "question": "中国共产党发布\"五一口号\"后，各党派团体积极响应，中国民主促进会还单独发表《宣言》，这是民进的重要历史性文件，它首次公开庄严宣布（ ），参加共产党领导的爱国民主统一战线，为彻底反对帝国主义、封建主义、官僚资本主义而奋斗。",
+                    "options": ["A、与国民党分道扬镳", "B、接受中国共产党的领导", "C、团结在中国共产党的周围", "D、跟着共产党走"],
+                    "answer": "C、团结在中国共产党的周围",
+                    "basis": "依据：1948年5月5日，马叙伦、王绍鏊和民革、民盟、致公、农工、救国会、民促、民联等团体领导人李济深、何香凝、沈钧儒、章伯钧、陈其尤、彭泽民、李章达、蔡廷锴、谭平山以及无党派代表郭沫若等在香港联名致电中国共产党主席毛泽东并转解放区全体同胞，积极响应\"五一口号\"，称赞这是\"适合人民时势之要求，尤符同人等之本旨\"，表示要和共产党一起\"共同策进，完成大业\"。同时，民进在香港还单独发表《宣言》响应\"五一口号\",指出：\"五一\"廿三条是近百年来中国革命史的结晶，是今后中国政治运动舵向的指标，中国的民主人士及民主党派就是要团结在这口号的周围，形成坚固的爱国民主统一战线，为反帝国主义，反封建主义，反官僚资本主义而奋斗。"
+                    },
+                    {
+                    "id": 26,
+                    "question": "1948年7月17日至31日，民进在港理事召开会议，讨论新政协施政纲要。通过了（ ），这一文件全面地、具体地提出了民进的各项政治主张。",
+                    "options": ["A、《宣言》", "B、《揭穿和谈阴谋》", "C、《中国民主促进会拟提出于政治协商会议之行动公约及政治纲领》", "D、《\"和谈\"阴谋与\"自由主义\"》"],
+                    "answer": "C、《中国民主促进会拟提出于政治协商会议之行动公约及政治纲领》",
+                    "basis": "依据：1948年7月17日，民进在港理事召开会议，讨论新政协施政纲要。7月31日，民进在港理事会议通过《中国民主促进会拟提出于政治协商会议之行动公约及政治纲领》。这一文件全面系统地提出了民进对于新政治协商会议的各项政治主张。"
+                    },
+                    {
+                    "id": 27,
+                    "question": "为了及早筹建新政治协商会议、成立民主联合政府，马叙伦、王绍鏊、许广平等在中共香港地下组织的安排下，分别于1948年10月、12月先后到达（ ）。",
+                    "options": ["A、西柏坡", "B、东北解放区", "C、延安", "D、山东解放区"],
+                    "answer": "B、东北解放区",
+                    "basis": "依据：为了更好地开展新政协的各项筹建工作，争取及早召开政治协商会议，在中国共产党的倡议和帮助安排下，在国统区和香港的各民主党派、各民主阶层的代表人士，于1948年8月起陆续进入解放区。周建人于8月由上海进入华北解放区。10月王绍鏊由香港抵达东北解放区。12月，马叙伦和同年秋由上海撤至香港的许广平等一起也转抵东北解放区。随着领导人进入解放区，民进开始了以解放区为根据地的活动阶段。"
+                    },
+                    {
+                    "id": 28,
+                    "question": "平津战役胜利后，中共中央特派林伯渠同志到沈阳迎接在东北解放区的民主人士入关。林伯渠带了一封（ ）给马叙伦、许广平的亲笔信，充分表达了中国共产党对民进领导人的亲切关怀和重视。",
+                    "options": ["A、毛泽东", "B、周恩来", "C、朱德", "D、董必武"],
+                    "answer": "B、周恩来",
+                    "basis": "依据：1949年2月中旬，中共中央特派林伯渠到沈阳迎接民主人士入关。行前，周恩来特亲笔给马叙伦、许广平写了信，委请林带交马、许。信的全文如下：彝老、景宋两先生：得电逾月，尚未作复，不能以忙碌求恕，唯向往之心，则无时或已。兹乘林伯渠同志出关迎迓之便，特致歉忱，并祝康健！周恩来2月14日这份信函充分表达了中国共产党人对民进两位领导人的深切关怀和重视。"
+                    },
+                    {
+                    "id": 29,
+                    "question": "1949年1月，严景耀、雷洁琼到西北坡出席中共中央召开的有关民主党派的会议，与中共中央领导人（ ）彻夜长谈。",
+                    "options": ["A、周恩来", "B、李维汉", "C、毛泽东"],
+                    "answer": "C、毛泽东",
+                    "basis": "依据：1949年1月中旬，在燕大任教的严景耀、雷洁琼夫妇，受在哈尔滨的马叙伦的委请，到西柏坡出席中共中央召开的有关民主党派的会议。他们同时接受第四野战军的邀请，参观访问了华北解放区。在西柏坡，严景耀、雷洁琼夫妇受到了中共中央领导毛泽东、刘少奇、朱德、周恩来、任弼时等的亲切接见，毛泽东并与严景耀、雷洁琼作了彻夜长谈，使他们受到巨大鼓舞和教育。"
+                    },
+                    {
+                    "id": 30,
+                    "question": "出席中国人民政治协商会议第一届全体会议的正式代表中的民进会员是（ ）。",
+                    "options": ["A、马叙伦、许广平、周建人、王绍鏊、梅达君、徐伯昕、林汉达、雷洁琼、赵朴初、严景耀", "B、马叙伦、许广平、周建人、王绍鏊、梅达君、徐伯昕、林汉达、雷洁琼、赵朴初、葛志成", "C、马叙伦、许广平、周建人、王绍鏊、梅达君、徐伯昕、林汉达、雷洁琼、赵朴初、郑振铎", "D、马叙伦、许广平、周建人、王绍鏊、梅达君、徐伯昕、林汉达、雷洁琼、赵朴初、冯少山"],
+                    "answer": "C、马叙伦、许广平、周建人、王绍鏊、梅达君、徐伯昕、林汉达、雷洁琼、赵朴初、郑振铎",
+                    "basis": "依据：名单A中严景耀为候补代表，名单B中葛志成为候补代表，名单D中冯少山为候补代表。"
+                    },
+                    {
+                    "id": 31,
+                    "question": "在新政协会议期间，马叙伦作为中国民主促进会的代表担任常务委员，并任（ ）审查委员会召集人。",
+                    "options": ["A、国旗、国徽、国都、纪年方案", "B、中华人民共和国中央人民政府组织法", "C、中国人民政治协商会议组织法", "D、《大会宣言》起草"],
+                    "answer": "A、国旗、国徽、国都、纪年方案",
+                    "basis": "依据：民进经过民主协商，一致推举马叙伦、许广平、周建人、王绍鏊、梅达君、徐伯昕、林汉达、雷洁琼为正式代表，严景耀为候补代表，出席第一届政治协商会议。另外，赵朴初作为宗教界民主人士代表，郑振铎作为全国文联代表，葛志成作为全国教育工作者候补代表，冯少山作为全国工商界候补代表也参加了大会。马叙伦还被推为大会主席团常务委员。会议期间，王绍鏊、赵朴初担任大会《政协组织法》草案整理委员会委员，许广平为《共同纲领》草案整理委员会委员，周建人为《政府组织法》草案整理委员会委员，雷洁琼为《大会宣言》起草委员会委员，马叙伦、郑振铎为《国旗、国徽、国都、纪年方案》审查委员会委员，马叙伦并为该委员会召集人。民进代表积极投入了各项筹备工作。《国旗、国徽、国都、纪年方案》审查委员会的前身即\"拟定国旗、国歌及国徽方案\"的第六小组，马叙伦为组长。"
+                    },
+                    {
+                    "id": 32,
+                    "question": "1949年9月30日，中国人民政治协商会议第一届全体会议胜利闭幕，产生了以毛泽东主席为首的中央人民政府委员会。其中，民进会员（ ）任中央人民政府委员、政务院政务委员、文化教育委员会副主任、教育部部长。",
+                    "options": ["A、马叙伦", "B、王绍鏊", "C、许广平", "D、叶圣陶"],
+                    "answer": "A、马叙伦",
+                    "basis": "依据：中国民主促进会作为新政治协商会议的组成单位之一，参加了中央人民政府的组建和部份领导工作。马叙伦当选为中央人民政府委员、政务院政务委员，并任文化教育委员会副主任、教育部部长。"
+                    },
+                    {
+                    "id": 33,
+                    "question": "1956年\"三大改造\"完成后，中共中央提出中国共产党同各民主党派团结合作的基本方针（ ）。这一方针是中国共产党根据中国的具体历史条件提出的，正确地反映了中国社会的客观实际，充分表达了中国共产党与民主党派合作共事的诚恳意愿，使全体民进会员受到极大鼓舞。",
+                    "options": ["A、长期共存、互相监督，肝胆相照、荣辱与共", "B、百花齐放、百家争鸣", "C、长期共存、互相监督"],
+                    "answer": "C、长期共存、互相监督",
+                    "basis": "依据：1956年4月，\"三大改造\"完成后，毛泽东在《论十大关系》中提出中国共产党同各民主党派团结合作的\"长期共存、互相监督\"的基本方针。这一方针是中国共产党根据中国的具体历史条件提出的，正确地反映了中国社会的客观实际，充分表达了中国共产党与民主党派合作共事的诚恳意愿，使全体民进会员受到极大鼓舞。"
+                    },
+                    {
+                    "id": 34,
+                    "question": "\"我们只有跟着共产党走才是在正道上行，才有良好的结果，否则根本上就错了\"是（ ）1958年在病榻前写下的条幅，勉励全体民进会员永远自觉接受中国共产党的领导，永远跟党走。",
+                    "options": ["A、马叙伦", "B、周建人", "C、王绍鏊", "D、叶圣陶"],
+                    "answer": "A、马叙伦",
+                    "basis": "依据：马叙伦主席于1958年6月5日在病榻前写下\"我们只有跟着共产党走才是在正道上行，才有良好的结果，否则根本上就错了\"的条幅，勉励全体会员永远自觉接受共产党的领导，永远跟党走。"
+                    },
+                    {
+                    "id": 35,
+                    "question": "民进（ ）（扩大）会议得到了中共中央和国家政府的高度重视和热情关怀。毛泽东、刘少奇、周恩来、朱德等党和国家领导亲切接见了全体与会代表；周恩来等领导向代表们作了国际形势、国内形势、民主党派前途及知识分子改造问题的报告，其中李维汉作民主党派前途及知识分子改造问题报告。",
+                    "options": ["A、五届一中全会", "B、五届二中全会", "C、五届三中全会"],
+                    "answer": "B、五届二中全会",
+                    "basis": "依据：1960年7月25日至9月6日，民进在京召开了长达40多天的五届二中全会（扩大）会议。这次会议得到了中共中央和国家政府的高度重视和热情关怀。会议期间，毛泽东、刘少奇、周恩来、朱德等党和国家领导亲切接见了全体与会代表；周恩来总理、李富春副总理、中央统战部长李维汉等分别向代表们作了国际形势、国内形势、民主党派前途及知识分子改造问题的报告。"
+                    }
+                // 此处省略剩余34题，实际使用时补充完整
+            ],
+            "重要史实多选(20道)": [
+                    {
+                    "id": 1,
+                    "question": "民进成立后以昂扬的斗志和大无畏的气概组织了（ ）等一系列争取民主的斗争。",
+                    "options": [
+                        "A、组织玉佛寺公祭",
+                        "B、抗议国民党反动当局屠杀进步青年",
+                        "C、支持上海工人运动",
+                        "D、支持中小学教师请愿活动"
+                    ],
+                    "answer": "A、组织玉佛寺公祭,B、抗议国民党反动当局屠杀进步青年,C、支持上海工人运动,D、支持中小学教师请愿活动",
+                    "basis": "依据：在上海各界爱国民主运动的大潮中，民进组织以昂扬的斗志和大无畏的气概抨击国民党当局的倒行逆施，揭露其伪装民主的真面目。这一系列争取民主的斗争包括组织玉佛寺公祭、抗议国民党反动当局屠杀进步青年、支持上海工人运动、支持中小学教师请愿活动等。"
+                    },
+                    {
+                    "id": 2,
+                    "question": "关于上海人民团体代表团组成的正确叙述是（ ）。",
+                    "options": [
+                        "A、包括马叙伦、蒉延芳、盛丕华、雷洁琼、包达三、张絅伯、阎宝航、吴耀宗及胡厥文等9人",
+                        "B、还有上海学生和平促进会选出的陈立复、陈震中",
+                        "C、胡子婴、罗叔章任代表团秘书",
+                        "D、代表团共计13人"
+                    ],
+                    "answer": "A、包括马叙伦、蒉延芳、盛丕华、雷洁琼、包达三、张絅伯、阎宝航、吴耀宗及胡厥文等9人,B、还有上海学生和平促进会选出的陈立复、陈震中,C、胡子婴、罗叔章任代表团秘书",
+                    "basis": "依据：代表团共计11人，两位秘书不计在内。"
+                    },
+                    {
+                    "id": 3,
+                    "question": "关于六二三反内战大会，正确的叙述是（ ）。",
+                    "options": [
+                        "A、大会地点是在上海北火车站",
+                        "B、实际参加人数十万余人",
+                        "C、王绍鏊、林汉达、陶行知三人担任大会执行主席",
+                        "D、列车开出后，广场上的群众参加了反内战大游行"
+                    ],
+                    "answer": "A、大会地点是在上海北火车站,B、实际参加人数十万余人,C、王绍鏊、林汉达、陶行知三人担任大会执行主席,D、列车开出后，广场上的群众参加了反内战大游行",
+                    "basis": "依据：1946年6月23日，上海人民反内战暨欢送和平请愿团赴京大会在北火车站举行。在中共上海地下党的动员和组织下，许多团体组织和个人不邀自来，实际参加大会的有300多个团体单位，107000余群众。9点40分，欢送大会宣布开始。王绍鏊、林汉达、陶行知三人担任大会执行主席。列车开出后，广场上10万群众立即开始了反内战大游行，队伍到达法国公园，游行胜利结束。"
+                    },
+                    {
+                    "id": 4,
+                    "question": "1946年6月23日，上海人民反内战暨欢送和平请愿团赴京大会后，和平请愿团乘火车赴南京请愿，在南京下关遭到国民党特务围攻殴打，酿成\"下关事件\"，请愿团代表（ ）、（ ）被打成重伤，（ ）等闻讯后，立即赶到医院看望，并神情严肃地说：\"你们的血是不会白流的\"。",
+                    "options": [
+                        "A、马叙伦",
+                        "B、雷洁琼",
+                        "C、周恩来",
+                        "D、胡厥文"
+                    ],
+                    "answer": "A、马叙伦,B、雷洁琼,C、周恩来",
+                    "basis": "依据：虽然胡厥文是和平请愿团的代表之一，但他是因故单独到达南京的。"
+                    },
+                    {
+                    "id": 5,
+                    "question": "在白色恐怖下，地下党帮助爱国民主人士秘密转移，表述正确的是（ ）。",
+                    "options": [
+                        "A、1947年底，马叙伦、王绍鏊、徐伯昕等人由沪转抵香港",
+                        "B、1946年8月，林汉达由沪进入东北解放区",
+                        "C、雷洁琼、严景耀夫妇于1946年9月离沪抵达北平",
+                        "D、1948年秋，许广平离沪辗转到达香港"
+                    ],
+                    "answer": "A、1947年底，马叙伦、王绍鏊、徐伯昕等人由沪转抵香港,B、1946年8月，林汉达由沪进入东北解放区,D、1948年秋，许广平离沪辗转到达香港",
+                    "basis": "依据：雷洁琼、严景耀夫妇是分别于1946年9月和1947年2月离沪抵达北平的。"
+                    },
+                    {
+                    "id": 6,
+                    "question": "关于中共中央\"五一口号\"叙述正确的是（ ）。",
+                    "options": [
+                        "A、1948年4月30日，中国共产党发布了具有重要历史意义的《纪念\"五一\"劳动节口号》(即\"五一口号\")",
+                        "B、共计25条",
+                        "C、其中第五条提出\"各民主党派、各人民团体、各社会贤达迅速召开政治协商会议，讨论并实现召集人民代表大会，成立联合政府\"",
+                        "D、5月5日，马叙伦、王绍鏊与等在港的各党派代表人士及无党派人士代表联名表态，积极响应\"五一口号\""
+                    ],
+                    "answer": "A、1948年4月30日，中国共产党发布了具有重要历史意义的《纪念\"五一\"劳动节口号》(即\"五一口号\"),C、其中第五条提出\"各民主党派、各人民团体、各社会贤达迅速召开政治协商会议，讨论并实现召集人民代表大会，成立联合政府\",D、5月5日，马叙伦、王绍鏊与等在港的各党派代表人士及无党派人士代表联名表态，积极响应\"五一口号\"",
+                    "basis": "依据：中国共产党于1948年4月30日发布的具有重要历史意义的《纪念\"五一\"劳动节口号》(即\"五一口号\")，共23条。"
+                    },
+                    {
+                    "id": 7,
+                    "question": "1948年8月起，在港民主人士陆续进入解放区，以下正确的叙述是（ ）。",
+                    "options": [
+                        "A、8月周建人由上海进入华北解放区",
+                        "B、10月王绍鏊由香港抵达东北解放区",
+                        "C、12月，马叙伦、许广平由香港转抵东北解放区",
+                        "D、8月，林汉达由上海进入解放区"
+                    ],
+                    "answer": "A、8月周建人由上海进入华北解放区,B、10月王绍鏊由香港抵达东北解放区,C、12月，马叙伦、许广平由香港转抵东北解放区",
+                    "basis": "依据：林汉达于1946年8月离开上海进入东北解放区。"
+                    },
+                    {
+                    "id": 8,
+                    "question": "1949年1月，（ ）、（ ）受马叙伦的委请，到西柏坡出席中共中央召开的有关民主党派的会议，受到毛泽东、刘少奇、朱德、周恩来、任弼时等中共中央领导人的接见。",
+                    "options": [
+                        "A、严景耀",
+                        "B、雷洁琼",
+                        "C、王绍鏊",
+                        "D、周建人"
+                    ],
+                    "answer": "A、严景耀,B、雷洁琼",
+                    "basis": "依据：1949年1月，严景耀、雷洁琼受马叙伦的委请，到西柏坡出席中共中央召开的有关民主党派的会议，受到毛泽东、刘少奇、朱德、周恩来、任弼时等中共中央领导人的接见。"
+                    },
+                    {
+                    "id": 9,
+                    "question": "（ ），中国人民政治协商会议筹备会议在北平中南海勤政殿隆重举行。（ ）代表中国民主促进会，（ ）代表文化界人士，（ ）代表上海人民团体联合会出席了会议。",
+                    "options": [
+                        "A、1949年6月15日",
+                        "B、马叙伦、王绍鏊、许广平、林汉达",
+                        "C、郑振铎、周建人",
+                        "D、汤桂芬、陈震中",
+                        "E、雷洁琼、葛志成"
+                    ],
+                    "answer": "A、1949年6月15日,B、马叙伦、王绍鏊、许广平、林汉达,C、郑振铎、周建人,E、雷洁琼、葛志成",
+                    "basis": "依据：1949年6月15日，中国人民政治协商会议筹备会议在北平中南海勤政殿隆重举行。马叙伦、王绍鏊、许广平、林汉达代表中国民主促进会，郑振铎、周建人代表文化界人士出席会议，原定上海人民团体联合会代表是汤桂芬、陈震中，但实际上是雷洁琼、葛志成代表上海人民团体联合会出席会议。"
+                    },
+                    {
+                    "id": 10,
+                    "question": "1949年9月25日晚，毛泽东、周恩来在中南海丰泽园召开座谈会，听取关于国旗、国徽、国歌、纪年、国都问题的意见。以下选项中正确的是（ ）。",
+                    "options": [
+                        "A、马叙伦、郭沫若、沈雁冰、田汉等出席了座谈会",
+                        "B、田汉提议用《义勇军进行曲》暂代国歌",
+                        "C、周恩来表示就用原来的歌词",
+                        "D、毛泽东也同意歌词不改"
+                    ],
+                    "answer": "A、马叙伦、郭沫若、沈雁冰、田汉等出席了座谈会,C、周恩来表示就用原来的歌词,D、毛泽东也同意歌词不改",
+                    "basis": "依据：田汉虽然是《义勇军进行曲》的词作者，但在座谈会上是马叙伦提议用《义勇军进行曲》暂代国歌的，他说：\"我们的政府就要成立，而国歌根据目前情况一下子是制作不出来的，是否我们可暂时用《义勇军进行曲》暂代国歌。\"许多委员表示赞成，也有的委员提出需要修改歌词。周恩来表示，就用原来的歌词，毛泽东也同意歌词不改。"
+                    },
+                    {
+                    "id": 11,
+                    "question": "1949年9月，以下民进会员代表参加了中国人民政治协商会议第一届全体会议，述叙正确的是（）。",
+                    "options": [
+                        "A、赵朴初作为宗教界民主人士代表参加了大会",
+                        "B、郑振铎作为全国文联代表参加了大会",
+                        "C、葛志成作为全国教育工作者候补代表参加了大会",
+                        "D、冯少山作为全国工商界候补代表参加了大会"
+                    ],
+                    "answer": "A、赵朴初作为宗教界民主人士代表参加了大会,B、郑振铎作为全国文联代表参加了大会,C、葛志成作为全国教育工作者候补代表参加了大会,D、冯少山作为全国工商界候补代表参加了大会",
+                    "basis": "依据：民进经过民主协商，一致推举马叙伦、许广平、周建人、王绍鏊、梅达君、徐伯昕、林汉达、雷洁琼为正式代表，严景耀为候补代表，出席第一届政治协商会议。赵朴初作为宗教界民主人士代表，郑振铎作为全国文联代表，葛志成作为全国教育工作者候补代表，冯少山作为全国工商界候补代表也参加了大会。"
+                    },
+                    {
+                    "id": 12,
+                    "question": "对于建国初期中国共产党提出的\"八字方针\"叙述正确的是（ ）。",
+                    "options": [
+                        "A、\"三大改造\"完成后",
+                        "B、毛泽东在《论十大关系》中提出",
+                        "C、表述为\"长期共存、互相监督\"",
+                        "D、充分表达了中国共产党与民主党派合作共事的诚恳意愿"
+                    ],
+                    "answer": "A、\"三大改造\"完成后,B、毛泽东在《论十大关系》中提出,C、表述为\"长期共存、互相监督\",D、充分表达了中国共产党与民主党派合作共事的诚恳意愿",
+                    "basis": "依据：1956年4月，\"三大改造\"完成后，毛泽东在《论十大关系》中提出中国共产党同各民主党派团结合作的\"长期共存、互相监督\"的基本方针。这一方针是中国共产党根据中国的具体历史条件提出的，正确地反映了中国社会的客观实际，充分表达了中国共产党与民主党派合作共事的诚恳意愿。"
+                    },
+                    {
+                    "id": 13,
+                    "question": "在第一届全国人民代表大会上，民进作为人民民主统一战线的一员，继续参加了国家政权的工作。马叙伦当选为全国人大常务委员会委员，并继任国家高等教育部部长；（ ）出任全国人大预算委员会副主任、国家财政部副部长；（ ）被任命为高等教育部副部长。",
+                    "options": [
+                        "A、王绍鏊",
+                        "B、周建人",
+                        "C、许广平"
+                    ],
+                    "answer": "A、王绍鏊,B、周建人",
+                    "basis": "依据：马叙伦当选为全国人大常务委员会委员，并继任国家高等教育部部长；王绍鏊出任全国人大预算委员会副主任、国家财政部副部长。周建人被任命为高等教育部副部长。还有不少民进同志参加了地方政权和政府的工作。"
+                    },
+                    {
+                    "id": 14,
+                    "question": "在抗美援朝运动中，民进参与或开展了（ ）等活动支持抗美援朝、保家卫国。",
+                    "options": [
+                        "A、民进总部在北京成立\"民进爱国武器捐献委员会\"",
+                        "B、北京分会发起了\"一碗肉劳军运动\"",
+                        "C、上海分会专门成立了抗美援朝保家卫国工作委员会",
+                        "D、广州分会发起募捐手榴弹代金运动"
+                    ],
+                    "answer": "A、民进总部在北京成立\"民进爱国武器捐献委员会\",B、北京分会发起了\"一碗肉劳军运动\",C、上海分会专门成立了抗美援朝保家卫国工作委员会,D、广州分会发起募捐手榴弹代金运动",
+                    "basis": "依据：各级组织遵照总部指示，以多种形式，广泛深入地开展抗美援朝的各种活动。民进总部在北京成立\"民进爱国武器捐献委员会\"。上海分会专门成立了抗美援朝保家卫国工作委员会，负责会内抗美援朝的各项工作。北京分会发起了\"一碗肉劳军运动\"，发动会员节约春节买肉的钱，献给在朝鲜前线的志愿军战士。广州分会发起募捐手榴弹代金运动。"
+                    },
+                    {
+                    "id": 15,
+                    "question": "关于参加第一届全国人民代表大会正确的叙述是（ ）。",
+                    "options": [
+                        "A、民进有16人当选为全国人民代表",
+                        "B、马叙伦继任教育部部长",
+                        "C、王绍鏊任国家财政部副部长",
+                        "D、周建人任教育部副部长"
+                    ],
+                    "answer": "A、民进有16人当选为全国人民代表,C、王绍鏊任国家财政部副部长",
+                    "basis": "依据：马叙伦继任高等教育部部长，周建人任高等教育部副部长。"
+                    }, 
+                    {
+                    "id": 16,
+                    "question": "关于1989 年12 月ZGZY颁发《关于坚持和完善中国共产党领导的多党合作和政治协商制度的意见》的叙述正确的选项是( )。",
+                    "options": [
+                        "A、1989 年12 月ZGZY颁发《关于坚持和完善中国共产党领导的多党合作和政治协商制度的意见》即ZGZY14号文件，简称《意见》",
+                        "B、民进ZY参加了这个文件的研讨和起草工作",
+                        "C、《意见》贯穿了两条主线：一是加强和改善中国共产党的领导，二是发扬社会主义民主，充分发挥民主党派的作用",
+                        "D、首次提出各民主党派“是接受共产党领导的、同ZG通力合作、共同致力于社会主义的亲密友党，是参政党"
+                    ],
+                    "answer": "A、1989 年12 月ZGZY颁发《关于坚持和完善中国共产党领导的多党合作和政治协商制度的意见》即ZGZY14号文件，简称《意见》,B、民进ZY参加了这个文件的研讨和起草工作,C、《意见》贯穿了两条主线：一是加强和改善中国共产党的领导，二是发扬社会主义民主，充分发挥民主党派的作用,D、首次提出各民主党派\"是接受共产党领导的、同ZG通力合作、共同致力于社会主义的亲密友党，是参政党",
+                    "basis": "依据:依据：1989 年12 月ZGZY颁发《关于坚持和完善中国共产党领导的多党合作和政治协商制度的意见》（即ZG中央14 号文件，简称《意见》），标志着我国的多党合作制度进入了一个全新的发展时期。民进ZY参加了这个文件的研讨和起草工作，并且受到了充分的尊重。《意见》是一个重要的马克思主义的文件，是ZGGCD历史上关于多党合作的第一个规范性文件，是ZG和各民主党派几十年长期合作实践经验的结晶，是ZG和各民主党派在新形势下合作共事的行动准则。《意见》贯穿了两条主线：一是加强和改善ZGGCD的领导，二是发扬社会主义民主，充分发挥民主党派的作用。围绕这两条主线，《意见》突出强调了国共产党的领导核心作用和多党合作的根本政治原则，明确指出\"ZGGCD是社会主义事业的领导核心，是执政党\"，各民主党派\"是接受共产党领导的、同ZG通力合作、共同致力于社会主义的亲密友党，是参政党\"，\"我国的多党合作必须坚持ZGGCD的领导，必须坚持四项基本原则，这是ZGGCD同各民主党派合作的政治基础。\""
+                    },
+                    {
+                    "id": 17,
+                    "question": "对习近平总书记走访民进中央的叙述正确的是（ ）。",
+                    "options": [
+                        "A、2012年12月24日下午，中共中央总书记习近平同志等视察了民进中央机关",
+                        "B、习近平听取了会中央领导严隽琪的介绍",
+                        "C、他说一代又一代的民进领导人对中国革命、建设和改革事业做出了重要贡献",
+                        "D、他重申，中共中央将坚定不移地坚持和完善中国共产党领导的多党合作和政治协商制度"
+                    ],
+                    "answer": "A、2012年12月24日下午，中共中央总书记习近平同志等视察了民进中央机关,B、习近平听取了会中央领导严隽琪的介绍,C、他说一代又一代的民进领导人对中国革命、建设和改革事业做出了重要贡献,D、他重申，中共中央将坚定不移地坚持和完善中国共产党领导的多党合作和政治协商制度",
+                    "basis": "依据：2012年12月24日下午，中共中央总书记习近平同志等视察了民进中央机关。习近平听取了会中央领导严隽琪的介绍。他说，刚才在民进中央机关大厅里看到了五尊雕像，使我们想起一代又一代的民进领导人同中国共产党团结合作，这实际上是一种和衷共济的关系，你中有我，我中有你，对中国革命、建设和改革事业做出了重要贡献。他重申，中共中央将坚定不移地坚持和完善中国共产党领导的多党合作和政治协商制度，坚定不移地贯彻\"长期共存、互相监督，肝胆相照、荣辱与共\"的方针，加强同民主党派的合作共事，支持民主党派更好地履行参政议政、民主监督的职能，这是我们基本的政治制度，是我们的政治发展道路。"
+                    },
+                    {
+                    "id": 18,
+                    "question": "在2015年召开的中央统战工作会议上，习近平总书记提出\"要支持民主党派加强思想、组织、制度特别是领导班子建设，提高（ ）。",
+                    "options": [
+                        "A、政治把握能力",
+                        "B、参政议政能力",
+                        "C、组织领导能力",
+                        "D、合作共事能力",
+                        "E、解决自身问题能力"
+                    ],
+                    "answer": "A、政治把握能力,B、参政议政能力,C、组织领导能力,D、合作共事能力,E、解决自身问题能力",
+                    "basis": "依据：习近平指出，中国共产党领导的多党合作和政治协商制度是我国的一项基本政治制度。要从制度上保障和完善参政议政、民主监督，探索有效形式。要支持民主党派加强思想、组织、制度特别是领导班子建设，提高政治把握能力、参政议政能力、组织领导能力、合作共事能力、解决自身问题能力。"
+                    },
+                    {
+                    "id": 19,
+                    "question": "2018年，习近平总书记提出：中国特色社会主义进入新时代，（ ），引导广大成员增进对中国共产党和中国特色社会主义的政治认同，使新时代多党合作展现出勃勃生机。",
+                    "options": [
+                        "A、多党合作要有新气象",
+                        "B、思想共识要有新提高",
+                        "C、机关建设要有新水平",
+                        "D、履职尽责要有新作为",
+                        "E、参政党要有新面貌"
+                    ],
+                    "answer": "A、多党合作要有新气象,B、思想共识要有新提高,D、履职尽责要有新作为,E、参政党要有新面貌",
+                    "basis": "依据：2018年2月6日，习近平总书记在同党外人士座谈并共迎新春时强调：\"中国特色社会主义进入新时代，多党合作要有新气象，思想共识要有新提高，履职尽责要有新作为，参政党要有新面貌，引导广大成员增进对中国共产党和中国特色社会主义的政治认同，使新时代多党合作展现出勃勃生机。\""
+                    },
+                    {
+                    "id": 20,
+                    "question": "2018年，习近平总书记提出：希望各民主党派和无党派人士要做中国共产党的（ ）、（ ）、（ ），增强责任和担当，共同把中国的事情办好。",
+                    "options": [
+                        "A、好参谋",
+                        "B、好党派",
+                        "C、好帮手",
+                        "D、好同事"
+                    ],
+                    "answer": "A、好参谋,C、好帮手,D、好同事",
+                    "basis": "依据：2018年3月4日，习近平总书记在看望参加全国政协十三届一次会议的民盟、致公党、无党派人士、侨联界委员时，希望各民主党派和无党派人士\"做中国共产党的好参谋、好帮手、好同事，增强责任和担当，共同把中国的事情办好\"。\"好参谋、好帮手、好同事\"，可称为\"三好\"，是对新时代民主党派作用地位的新概括，为巩固团结和谐的政党关系、建设高素质的中国特色社会主义参政党提供了重要指导。"
+                    },
+                // 此处省略剩余19题，实际使用时补充完整
+            ],
+            
+            // 四、重要人物类
+            "重要人物判断(15道)": [
+                    {
+                    "id": 1,
+                    "question": "周建人是我国现代妇女解放运动的先驱者之一。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1920年8月，他与胡愈之、周作人等17人发起组织\"妇女问题研究会\"，并在北京晨报副刊上发表了《妇女问题研究宣言》，他是我国现代妇女解放运动的先驱者之一。"
+                    },
+                    {
+                    "id": 2,
+                    "question": "叶圣陶于1963年加入中国民主促进会，曾任民进中央副主席、民进中央代主席、民进中央名誉主席。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：于1963年加入中国民主促进会，在1979年民进四大上当选为民进中央副主席，1984年9月任民进中央代主席。1987年6月任民进中央名誉主席。"
+                    },
+                    {
+                    "id": 3,
+                    "question": "雷洁琼曾出任香港基本法起草委员会委员和澳门基本法起草委员会副主任，为香港和澳门回归祖国做出了贡献。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1985年，雷洁琼出任香港基本法起草委员会委员和澳门基本法起草委员会副主任。作为国家领导人和著名法学家，她为两个基本法的起草工作殚精竭虑。她多次亲赴港澳，广泛听取各界人士的意见，进行民主协商。她还参加了香港特别行政区区旗、区徽评选委员会的工作。1997年7月1日，雷洁琼作为中国代表团的一员，以91岁高龄飞抵香港出席政权交接仪式，亲历这一民族盛事。"
+                    },
+                    {
+                    "id": 4,
+                    "question": "赵朴初长期担任中国佛教协会会长，对中国佛教和国际宗教友好交流的发展作出了卓越的贡献。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：他长期担任中国佛教协会会长，倡导\"人间佛教\"，引导中国佛教走上复兴之路。他提出\"黄金纽带\"构想，对国际宗教友好做出了卓越的贡献。"
+                    },
+                    {
+                    "id": 5,
+                    "question": "车向忱联合一些爱国青年和进步人士，先后组织了奉天平民教育促进会、辽宁平民常识促进会等群众团体并任主要负责人，因为他有强烈的反帝爱国思想和穷干、苦干、实干的精神而被誉为\"东北的甘地\"。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1925年，车向忱回到沈阳从事平民教育和抗日爱国宣传活动。他联合一些爱国青年和进步人士，先后组织了奉天学生平民服务团、奉天平民教育促进会、辽宁平民常识促进会、辽宁国货公司等群众团体，并任主要负责人。车向忱以强烈的反帝爱国思想和穷干、苦干、实干的精神闻名，被誉为\"东北的甘地\"。"
+                    },
+                    {
+                    "id": 6,
+                    "question": "郑振铎是中国现代杰出的爱国主义者和社会活动家、作家、诗人、学者、文学评论家、文学史家、翻译家、艺术史家，也是著名的收藏家。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：郑振铎，字西谛，笔名有郭源新、落雪、ct等，原籍福建长乐。中国现代杰出的爱国主义者和社会活动家、作家、诗人、学者、文学评论家、文学史家、翻译家、艺术史家，也是著名的收藏家。"
+                    },
+                    {
+                    "id": 7,
+                    "question": "徐伯昕与邹韬奋一起创办的生活书店得到了周恩来的关怀和支持，他曾说过\"《生活》讲人民大众想讲的话，讲国民党不肯讲的话，讲《新华日报》不便讲的话。\"",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：生活书店得到了周恩来的关怀和支持，他曾说过\"《生活》讲人民大众想讲的话，讲国民党不肯讲的话，讲《新华日报》不便讲的话。\"徐伯昕于1944年加入中国共产党后，周恩来是他的介绍人之一。在各种艰难险阻和尖锐复杂的斗争中，他对党忠心耿耿，他说；\"生活书店的工作已是党的文化工作的一部分\"，\"我直接接受了党的领导\"。"
+                    },
+                    {
+                    "id": 8,
+                    "question": "吴文藻，中国著名社会学家、人类学家、民族学家。吴文藻先生是中国社会学、人类学和民族学本土化、中国化的最早提倡者和积极实践者。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：吴文藻，中国著名社会学家、人类学家、民族学家。吴文藻先生是中国社会学、人类学和民族学本土化、中国化的最早提倡者和积极实践者。当年燕京大学的社会学系设有\"西洋社会思想史\"、\"家族社会学\"、\"人类学\"三门课，原先采用的都是英文教本，有感于西方理论与中国现实的脱节，他到任后就亲自为每一门课都编写了中文教材，大力提倡和推行社会学中国化主张。"
+                    },
+                    {
+                    "id": 9,
+                    "question": "杨东莼,原名杨人杞，又名岂匏，湖南醴陵人，著名马克思主义历史学家、翻译家、教育家、训诂学家和社会活动家。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：杨东莼，原名杨人杞，又名岂匏，湖南醴陵人，著名马克思主义历史学家、翻译家、教育家和社会活动家。"
+                    },
+                    {
+                    "id": 10,
+                    "question": "1957年5月，杨东莼出席中央统战部召集的各民主党派、工商联负责人会议，对如何搞好统战工作及\"反右\"等问题，坦诚地陈述了自己的看法，提出了中肯的意见和建议。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：1957年5月，他出席中央统战部召集的各民主党派、工商联负责人会议，对如何搞好统战工作及\"反右\"等问题，坦诚地陈述了自己的看法，提出了中肯的意见和建议。在\"反右\"运动期间，他与马叙伦、周建人等民进中央领导带头整风，把握方向，在党派内坚持\"多批评少批判不整人\"；在清理组织，处理人员问题上，持十分慎重态度，坚持\"惩前毖后，治病救人\"的正确方针，这种实事求是的精神，在当时尤为可贵。"
+                    },
+                    {
+                    "id": 11,
+                    "question": "叶至善为少年儿童写了大量优秀科普文章，编印了很多优秀的图书，主要代表作品有散文集《花萼》（合集）、童话《稻草人》《古诗词新唱》、人物传记《父亲长长的一生》等。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：他1934年开始发表作品，他在主持少儿刊物及图书发行的五十多年中，为少年儿童写了大量优秀科普文章，编印了很多优秀的图书。著有散文集《花萼》（合集）、《三叶》（合集）、《花萼与三叶》《未必佳集》（合集）、《古诗词新唱》《我是》《父亲的希望》，43万字的人物传记《父亲长长的一生》等。科学故事集《失踪的哥哥》获全国少年儿童文艺创作三等奖，科学家传记小说《梦魇》获全国第二届优秀科普作品一等奖、第三届宋庆龄儿童文学二等奖，《竖鸡蛋和别的故事》获上海优秀科普读物一等奖、全国第三届科普作品荣誉奖。童话《稻草人》是他父亲叶圣陶的作品。"
+                    },
+                    {
+                    "id": 12,
+                    "question": "吴若安，江苏金山人，她是中国民主促进会的重要领导人，著名的教育家和社会活动家，历经清朝、民国和新中国三个历史时代，从一个普通的知识分子转变为坚定跟党走的革命知识分子。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：吴若安（1890～1990），原名杏宝，江苏金山（今属上海市）人，曾任中国民主促进会中央副主席、民进中央参议委员会副主席、民进上海市委会主委，她是著名的教育家和社会活动家，历经清朝、民国和新中国三个历史时代，从一个普通的知识分子转变为坚定跟党走的革命知识分子。"
+                    },
+                    {
+                    "id": 13,
+                    "question": "傅雷翻译的作品，共30余种，主要为法国文学作品,其中巴尔扎克占15种,如《高老头》，罗曼.罗兰4种,如《约翰.克利斯朵夫》，伏尔泰4种，如《老实人》，梅里美2种，如《嘉尔曼》，莫罗阿3种，如《伏尔泰传》。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：傅雷翻译的作品，共30余种，主要为法国文学作品。其中巴尔扎克占15种：有《高老头》《亚尔培·萨伐龙》《欧也妮.葛朗台》《贝姨》《邦斯舅舅》《夏倍上校》、《奥诺丽纳》《禁治产》《于絮尔.弥罗埃》《赛查·皮罗多盛衰记》《搅水女人》《都尔的本堂神父》《比哀兰德》《幻灭》《猫儿打球记》（译文在\"文化大革命\"期间被抄）。罗曼·罗兰4种：即《约翰.克利斯朵夫》及三名人传《贝多芬传》《米开朗琪罗传》《托尔斯泰传》。伏尔泰4种：《老实人》《天真汉》《如此世界》《查第格》。梅里美2种：《嘉尔曼》《高龙巴》。莫罗阿3种：《伏尔泰传》《人生五大问题》《恋爱与牺牲》。此外还译有苏卜的《夏洛外传》，杜哈曼的《文明》，丹纳的《艺术哲学》，英国罗素的《幸福之路》和牛顿的《英国绘画》等书。"
+                    },
+                    {
+                    "id": 14,
+                    "question": "在政协第一届全国委员会第一次会议上，许广平受因病缺席的马叙伦的委托，宣读了马叙伦的关于\"请政府明定10月1日为中华人民共和国国庆日，以代替10月10日的旧国庆日\"的建议。",
+                    "options": ["正确", "错误"],
+                    "answer": "正确",
+                    "basis": "依据：民进经过民主协商，许广平被推举为正式代表，出席第一届政治协商会议。会议期间，许广平为《共同纲领》草案整理委员会委员。在政协第一届全国委员会第一次会议上，许广平受因病缺席的马叙伦的委托，宣读了马叙伦的关于\"请政府明定10月1日为中华人民共和国国庆日，以代替10月10日的旧国庆日\"的建议。"
+                    },
+                    {
+                    "id": 15,
+                    "question": "1949年6月，葛志成代表上海人民团体联合会出席了新政协筹备会议,他与王绍鏊、郑振铎一起参加第二筹备小组，起草中国人民政治协商会议组织法。9月他作为民进代表出席了中国人民政治协商会议第一次全体会议。",
+                    "options": ["正确", "错误"],
+                    "answer": "错误",
+                    "basis": "依据：1949年6月，他代表上海人民团体联合会出席了新政协筹备会议,他与王绍鏊、郑振铎一起参加第二筹备小组，起草中国人民政治协商会议组织法。9月他作为全国教育工作者候补代表出席了中国人民政治协商会议第一次全体会议。新中国成立后，他历任中华人民共和国教育部、高教部办公厅副主任。"
+                    }                // 此处省略剩余14题，实际使用时补充完整
+            ],
+            "重要人物单选(14道)": [
+                    {
+                    "id": 1,
+                    "question": "对马叙伦早年投入救国救民大潮叙述不正确的是（ ）。",
+                    "options": [
+                        "A、1908年，他参加了由柳亚子等发起组织的南社",
+                        "B、与邓实、黄节等合办《大共和日报》，为总编辑", 
+                        "C、五四运动中马叙伦积极支持学生运动，担任了北京大学教职员会和北京中等以上学校的教职员会联合会书记和主席",
+                        "D、1935年一二九运动之后，他倡议组织北平文化界抗日救国会，被推为主席"
+                    ],
+                    "answer": "B、与邓实、黄节等合办《大共和日报》，为总编辑",
+                    "basis": "依据：马叙伦17岁来到上海从事办报工作，结识了当时的革命党人和维新派人物蔡元培、章太炎等。后来他与邓实、黄节等创办了《国粹学报》。1908年，他参加了由柳亚子等发起组织的南社，1911年夏，在日本拜访章太介。武昌起义爆发后，他在家乡参与筹备民团响应起义，后任浙江省都督府秘书，不久到上海，与章太炎合办《大共和日报》，为总编辑。五四运动中马叙伦积极支持学生运动，担任了北京大学教职员会和北京中等以上学校的教职员会联合会书记和主席。1935年一二九运动之后，他倡议组织北平文化界抗日救国会，被推为主席。C项应为章太炎。"
+                    },
+                    {
+                    "id": 2,
+                    "question": "以下不属于马叙伦著作的选项是（ ）。",
+                    "options": [
+                        "A、《说文解字研究法》",
+                        "B、《中国文字之构造法》", 
+                        "C、《我在六十岁以前》",
+                        "D、《马叙伦》（花山文艺出版社）"
+                    ],
+                    "answer": "D、《马叙伦》（花山文艺出版社）",
+                    "basis": "依据：主要著作有《庄子札记十四卷上下册》1919年、《老子校诂1956年古籍出版社1974年中华书局》、《说文解字研究法》1929年、《中国文字之构造法》1927年、《六书解例四卷》1931年、《马叙伦言论集》1946年、《我在六十岁以前》1947年、《石屋余渖》1948年、《石屋续渖》1949年、《说文解字六书疏证》1957年等。花山文艺出版社出版的《马叙伦》的作者是卢礼阳。"
+                    },
+                    {
+                    "id": 3,
+                    "question": "以下对叶圣陶的介绍不准确的选项是（ ）。",
+                    "options": [
+                        "A、他是著名作家、教育家、出版家和社会活动家",
+                        "B、1921年与沈雁冰、郑振铎等发起组织文学研究会，并与朱自清等人创办了我国新文坛上第一个诗刊",
+                        "C、1923年进入商务印书馆，除主办《中学生》杂志外还主编了《新少年》《中学生文艺》《开明少年》等刊物",
+                        "D、\"九一八\"事变后他积极投身抗日救亡运动，抗战胜利后在上海积极投身于爱国民主运动"
+                    ],
+                    "answer": "C、1923年进入商务印书馆，除主办《中学生》杂志外还主编了《新少年》《中学生文艺》《开明少年》等刊物",
+                    "basis": "依据：叶圣陶是著名作家、教育家、出版家和社会活动家。1912年中学毕业后做小学教师并从事文学创作。1921年与沈雁冰、郑振铎等发起组织文学研究会，并与朱自清等人创办了我国新文坛上第一个诗刊。1923年进入商务印书馆，1930年转入开明书店，除主办《中学生》杂志外还主编了《新少年》《中学生文艺》《开明少年》等刊物。\"九一八\"事变后他积极投身抗日救亡运动，抗战胜利后在上海积极投身于爱国民主运动。六二三事件中他参与欢送上海人民代表马叙伦等赴南京请愿。C项不准确。"
+                    },
+                    {
+                    "id": 4,
+                    "question": "雷洁琼一生中最喜欢的称呼是（ ）。",
+                    "options": [
+                        "A、学者",
+                        "B、官员", 
+                        "C、教授",
+                        "D、专家"
+                    ],
+                    "answer": "C、教授",
+                    "basis": "依据：雷洁琼热爱教育事业，不管身任何职，一生都没有脱离高校讲台。她说：\"说到底我只是一名老教师，在所有称呼中，我最喜欢教授这个头衔。\"正是她联合了民进和社会上的知名人士提出建立教师节的提案，当第一个教师节来临时，她主张要为提高教师的政治地位、社会地位多办实事，她倡导成立了尊师重教基金会，为广大优秀教师代表来北京参观学习创造条件。在担任全国人大常委会副委员长期间，她曾亲自到北京广渠门宏志班看望学生们，并亲笔题写\"宏志班\"三个字。"
+                    },
+                    {
+                    "id": 5,
+                    "question": "对于赵朴初早年参加爱国民主运动的叙述不准确的选项是（ ）。",
+                    "options": [
+                        "A、早年从事佛教及社会救济工作，曾任上海慈联救济战区难民委员会常委兼收容股主任、上海净业流浪儿童教养院副院长、上海少年村村长等职务",
+                        "B、1939年，参加宪政促进运动", 
+                        "C、\"八一三\"之后，他积极参加抗日救亡运动，任上海文化界救亡协会理事",
+                        "D、以《周报》和《民主》两个刊物为阵地，他是汇聚在马叙伦周围的民主人士之一"
+                    ],
+                    "answer": "D、以《周报》和《民主》两个刊物为阵地，他是汇聚在马叙伦周围的民主人士之一",
+                    "basis": "依据：赵朴初早年就读于东吴大学，后来从事佛教及社会救济工作，曾任江浙佛教联合会、上海佛教会秘书，中国佛教会主任秘书，上海慈联救济战区难民委员会常委兼收容股主任，上海净业流浪儿童教养院副院长，上海少年村村长。1939年，参加了宪政促进运动，为争取民主与国民党当局进行面对面的斗争。\"八一三\"之后，他积极参加抗日救亡运动，任上海文化界救亡协会理事，抗战胜利后积极投入爱国民主运动，参与发起成立中国民主促进会，心系民进，鞠躬尽瘁。以《周报》和《民主》两个刊物为阵地，马叙伦周围汇聚了周建人、林汉达、许广平等一大批民主人士。王绍鏊是中共地下党员，他以工商界人士的身份开展工作，联系了陈巳生、张纪元、赵朴初、林汉达等一大批民主人士。故D项不准确。"
+                    },
+                    {
+                    "id": 6,
+                    "question": "以下关于冰心的简介不准确的是（ ）。",
+                    "options": [
+                        "A、1923年毕业于燕京大学文科，后赴美留学，就读于威尔斯利女子大学研究院",
+                        "B、1926年获文学博士学位", 
+                        "C、毕业后回国，先后在北平燕京大学女子文理学院、清华大学任教",
+                        "D、抗日战争爆发后她积极投入抗日救亡运动，抗战胜利后随丈夫吴文藻去日本从事教育工作",
+                        "E、新中国成立后，她和吴文藻于1951年冒着生命的危险毅然秘密返回祖国"
+                    ],
+                    "answer": "B、1926年获文学博士学位",
+                    "basis": "依据：1923年谢冰心毕业于燕京大学文科，后赴美留学，就读于威尔斯利女子大学研究院。1926年获文学硕士学位。毕业后回国，先后在北平燕京大学女子文理学院、清华大学任教。抗日战争爆发后她积极投入抗日救亡运动，抗战胜利后随丈夫吴文藻去日本从事教育工作。新中国成立后，她和吴文藻于1951年冒着生命的危险毅然秘密返回祖国，回国后曾在中国作家协会、全国文联、全国妇联任职。"
+                    },
+                    {
+                    "id": 7,
+                    "question": "文学研究会是在新文化运动中成立的第一个纯文学团体，其成员后来成为民进会员的是（ ）。",
+                    "options": [
+                        "A、郑振铎叶圣陶冰心",
+                        "B、郑振铎叶圣陶朱自清", 
+                        "C、叶圣陶夏丏尊胡愈之",
+                        "D、沈雁冰胡愈之周建人"
+                    ],
+                    "answer": "A、郑振铎叶圣陶冰心",
+                    "basis": "依据：文学研究会于1921年1月4日在北京正式成立，发起人为：郑振铎、沈雁冰（茅盾）、叶绍钧（叶圣陶）、许地山、王统照、耿济之、郭绍虞、周作人、孙伏园、朱希祖、瞿世英、蒋百里。后来陆续发展的会员有谢婉莹(冰心)、顾毓琇、黄庐隐、朱自清、王鲁彦、夏丏尊、舒庆春（老舍）、胡愈之、刘半农、刘大白、朱湘、徐志摩、彭家煌等，共达170余人，成立时发表有《文学研究会宣言》及《文学研究会简章》，会址设在北京。"
+                    },
+                    {
+                    "id": 8,
+                    "question": "民进中央委员（ ）是中国现代著名历史学家、民俗学家，古史辨学派创始人，是现代历史地理学和民俗学的开拓者、奠基人。",
+                    "options": [
+                        "A、顾颉刚",
+                        "B、史念海", 
+                        "C、石泉",
+                        "D、秦佩珩"
+                    ],
+                    "answer": "A、顾颉刚",
+                    "basis": "依据：顾颉刚(1893年-1980年)，名诵坤，字铭坚，号颉刚，小名双庆，笔名有余毅、铭坚等，江苏苏州人。他是中国现代著名历史学家、民俗学家，古史辨学派创始人，是现代历史地理学和民俗学的开拓者、奠基人。1920年，顾颉刚毕业于北京大学，后历任厦门大学、中山大学、燕京大学、北京大学、云南大学、兰州大学等校教授，新中国成立后，任中国科学院历史研究所研究员、中国民间文艺研究会副主席、中国民主促进会中央委员等职。"
+                    },
+                   {
+                    "id": 10,
+                    "question": "以下对郑振铎在抗战期间和抗战胜利后活动的叙述中不准确的选项是（ ）",
+                    "options": ["A、抗战爆发后 参与发起了\"上海文化界救亡协会\"  创办《救亡日报》", 
+                                         "B、和许广平等人组织\"复社\"",
+                                         "C、出版了《鲁迅全集》《联共党史》《列宁文选》",
+                                         "D、创办进步刊物《周报》"
+                    ],
+                    "answer": "D、创办进步刊物《周报》",
+                    "basis": "依据：抗战爆发后，参与发起了\"上海文化界救亡协会\"，创办《救亡日报》。和许广平等人组织“复社”，出版了《鲁迅全集》、《联共党史》、《列宁文选》等。抗战胜利后，参与发起组织\"中国民主促进会\"，创办《民主》周刊，《民主》从诞生那一天起就高举和平民主的旗帜，呼喊出了广大爱国同胞的心声，著名的《中国民主促进会对于时局的宣言》就发表在《民主》周刊上。1945 年9 月8 日，柯灵与唐弢创办抗战胜利后上海第一份进步刊物《周报》。"
+                   },
+                    {
+                    "id": 11,
+                    "question": "以下对徐伯昕在抗战胜利后的活动叙述不准确的是（ ）。",
+                    "options": [
+                        "A、抗日战争胜利后，他在上海与郑振铎等创办了《民主》周刊",
+                        "B、1945年10月，他成为全国各界救国联合会的正式成员并任第一届中央执行委员",
+                        "C、1945年年底，他积极参与中国民主促进会的创立，并被选为第一、二届理事会理事",
+                        "D、1946年上海人民团体联合会成立，他被推选为理事，参与筹划上海人民反内战暨欢送和平请愿团赴京大会"
+                    ],
+                    "answer": "B、1945年10月，他成为全国各界救国联合会的正式成员并任第一届中央执行委员",
+                    "basis": "依据：抗日战争胜利后，他在上海与郑振铎等创办了《民主》周刊，以《民主》、《周报》为阵地，聚集了马叙伦、王绍鏊等一大批爱国民主知识分子。1945年10月，他成为中国人民救国会的正式成员（注：1936年5月宋庆龄、沈钧儒创立了全国各界救国联合会，为彻底\"反对殖民帝国主义的民族压迫，反对国内封建主义与法西斯主义残余势力的压迫\"，救国会决定改名为\"中国人民救国会\"），任第一届中央执行委员。1945年年底，他积极参与中国民主促进会的创立，并被选为第一、二届理事会理事。1946年上海人民团体联合会成立，他被推选为理事。同年6月23日，上海各界人民团体为反对国民党发动全面内战，在中国共产党的领导下，组织十万群众举行集会、游行，欢送马叙伦等和平代表去南京呼吁和平，当时徐伯昕积极参与筹划，并和革命群众一起与国民党反动派进行尖锐斗争。全国各界救国联合会已改名为中国人民救国会，故B项不准确。"
+                    },
+                    {
+                    "id": 12,
+                    "question": "以下不属于林汉达著作的选项是（ ）。",
+                    "options": [
+                        "A、《上下五千年》",
+                        "B、《汉字改革概论》",
+                        "C、《中国拼音文字的整理》",
+                        "D、《高中标准英语读本》"
+                    ],
+                    "answer": "B、《汉字改革概论》",
+                    "basis": "依据：主要著作有《中国拼音文字的整理》《上下五千年》、《东周列国故事新编》《前后汉故事新编》《高中标准英语读本》《初级中学校用标准英语读本》等。《汉字改革概论》是周有光的著作，1961年出版。"
+                    },
+                    {
+                    "id": 13,
+                    "question": "对于吴贻芳的从教生涯叙述不准确的是（ ）。",
+                    "options": [
+                        "A、1928年，在密执安大学学成回国后担任金陵女子大学校长，时年35岁，在职近30年",
+                        "B、她的教育理念是以\"拿炭烧口\"的精神投身实践，当国家民族需要之时，要有\"我在这里，来差遣我\"的态度",
+                        "C、1951年金陵女子大学和金陵大学合并，她任金陵大学校务委员会主任委员，同年，担任江苏省教育厅厅长",
+                        "D、1956年，她被选为江苏省副省长，分管教育、文化、科技、卫生、体育,1981年，她以88岁高龄再度当选为江苏省副省长"
+                    ],
+                    "answer": "C、1951年金陵女子大学和金陵大学合并，她任金陵大学校务委员会主任委员，同年，担任江苏省教育厅厅长",
+                    "basis": "依据：1928年，她获得了密执安大学生物学博士学位，随后即给金陵女子大学发出\"论文已毕，考试及格，定期回国\"的电报，而后回国履任金陵女子大学校长，时年35岁，在职近30年。她的教育理念是以\"拿炭烧口\"的精神投身实践，当国家民族需要之时，要有\"我在这里，来差遣我\"的态度。1951年金陵女子大学和金陵大学合并，她任金陵大学校务委员会副主任委员，同年，担任江苏省教育厅厅长。1956年，她被选为江苏省副省长，分管教育、文化、科技、卫生、体育。她根据邓小平同志关于教育\"三个面向\"的指示，明确提出\"幼儿教育也要三个面向\"。1981年，她以88岁高龄再度当选为江苏省副省长。C项不准确，应为副主任委员。"
+                    },
+                    {
+                    "id": 14,
+                    "question": "对于傅雷在爱国民主运动中的活动叙述不准确的是（ ）。",
+                    "options": [
+                        "A、五卅运动时，他参加在街头的讲演游行，北伐战争时他又参加大同大学附中学潮，受到国民党逮捕的威胁和恐吓",
+                        "B、抗日战争胜利后，他以极大的热情投入上海爱国民主运动浪潮中，成为《民主》和《周报》这两个刊物的主要撰稿者",
+                        "C、他参加了民进成立大会文件等方面的准备工作并出席了民进成立大会",
+                        "D、他出席了第二次会员大会，与许广平、张凤举一起当选为第一届理事会候补理事",
+                        "E、1945年12月，他与马叙伦、王绍鏊等61位爱国知名人士联名发表了《给美国人民的公开信》"
+                    ],
+                    "answer": "C、他参加了民进成立大会文件等方面的准备工作并出席了民进成立大会",
+                    "basis": "依据：五卅运动时，他参加在街头的讲演游行。北伐战争时他又参加大同大学附中学潮，在国民党逮捕的威胁和恐吓之下，被寡母强迫避离乡下。1927年冬离沪赴法，在巴黎大学文科听课；同时专攻美术理论和艺术评论。1931年秋回国后，即致力于法国文学的翻译与介绍工作。抗日战争胜利后，面对中国两种命运的抉择，他怀抱忧国忧民之志，以极大的热情投入上海爱国民主运动浪潮中。在《民主》和《周报》这两个刊物的周围，聚集了一大批文化界的知名人士，以笔做刀枪口诛笔伐国民党反动当局，傅雷亦在其中。在民进创建的过程中傅雷是骨干力量，他参加了民进成立大会文件等方面的准备工作,他没有出席民进成立大会，但是出席了第二次会员大会，他与许广平、张凤举一起当选为第一届理事会候补理事。1945年12月中旬，马叙伦、王绍鏊利用马歇尔来沪之机，联络民进会员以及文化界其他爱国知名人士共61人联名发表了《给美国人民的公开信》，他亦在其中。1949年6月，傅雷携眷前往香港，长子傅聪独留昆明读书。不久回京转沪，钻进书斋继续他的翻译事业。C项不准确，傅雷没有出席民进成立大会。"
+                    }
+                // 此处省略剩余13题，实际使用时补充完整
+            ],
+            "重要人物多选(12道)": [
+               {
+                   "id": 1,
+                   "question": "马叙伦在民主革命时期的主要贡献包括（）。",
+                   "options": [
+                             "A、参与发起成立中国民主促进会",
+                             "B、担任新中国第一任教育部长",
+                             "C、积极投身反内战、反独裁运动",
+                             "D、提出将10月1日定为中华人民共和国国庆日"
+                   ],
+                   "answer": "A、参与发起成立中国民主促进会,B、担任新中国第一任教育部长,C、积极投身反内战、反独裁运动,D、提出将10月1日定为中华人民共和国国庆日",
+                   "basis": "依据：马叙伦是民进的主要创始人之一，在民主革命和新中国建设时期都作出了重要贡献。"
+               },
+              {
+                   "id": 2,
+                   "question": "马叙伦在1958年6月5日写下的最后一幅题词是\"我们只有跟着（ ）走，才是在（ ）上行，才有（ ），否则根本上就错了。\"",
+                   "options": [
+                             "A、共产党",
+                             "B、正道",
+                             "C、光明的前途",
+                             "D、良好的结果"
+                   ],
+                   "answer": "A、共产党,B、正道,D、良好的结果",
+                   "basis": "依据：1958年6月5日，他在还能写字的时候，在病床上坚持写下了\"我们只有跟着共产党走，才是在正道上行，才有良好的结果，否则根本上就错了\"的最后题词,这是他奋斗一生得出的结论。"
+               },
+              {
+                   "id": 3,
+                   "question": "王绍鏊早年投身于民主革命的斗争，以下叙述正确的是（ ）。",
+                   "options": [
+                             "A、他追随章太炎先生在上海创办中华民国联合会，并陪章太炎到南京晋谒临时大总统孙中山",
+                             "B、他在国会的竞选中当选为众议院议员、宪法起草委员会委员，全力投入了起草宪法的工作",
+                             "C、他的议会政治的梦幻破灭后愤然南归，参加了讨袁护法斗争",
+                             "D、五四运动时期，他在江苏第一甲种商业学校任教，热情支持学生的革命行动"
+                   ],
+                   "answer": "A、他追随章太炎先生在上海创办中华民国联合会，并陪章太炎到南京晋谒临时大总统孙中山,B、他在国会的竞选中当选为众议院议员、宪法起草委员会委员，全力投入了起草宪法的工作,C、他的议会政治的梦幻破灭后愤然南归，参加了讨袁护法斗争,D、五四运动时期，他在江苏第一甲种商业学校任教，热情支持学生的革命行动",
+                   "basis": "依据：早年的王绍鏊曾克服困难考入日本早稻田大学政治经济科。1911年毕业回国后他立即投身于推翻清政府的革命斗争中。他追随章太炎先生在上海创办中华民国联合会，并陪章太炎到南京晋谒临时大总统孙中山。他在国会的竞选中当选为众议院议员、宪法起草委员会委员，全力投入了起草宪法的工作。1913年，利用国会当上大总统的袁世凯转而图谋解散国会，王绍鏊议会政治的梦幻破灭了，他愤然南归，参加了讨袁护法斗争。五四运动时期，王绍鏊在江苏第一甲种商业学校任教，他热情支持学生的革命行动，并奔走呼号，发起组织\"外交大会\"，揭露和抗议北洋政府的卖国罪行。"
+               },
+              {
+                   "id": 4,
+                   "question": "以下选项对叶圣陶的介绍正确的是（ ）。",
+                   "options": [
+                             "A、从1919年到1949年，他的代表作有短篇集《隔膜》、童话集《稻草人》、长篇小说《倪焕之》《文艺谈.四十则》",
+                             "B、他为新文学奠基，是我国现代教育的先驱者，是我国业绩卓著的出版家",
+                             "C、他是著名的社会活动家，抗战胜利后就与民进合作，投身于爱国民主运动",
+                             "D、新中国成立之后，他先后担任ZY人民政府出版总署副署长兼编审局局长、教育部副部长兼人民教育出版社社长和总编、ZY文史研究馆馆长等职务"
+                   ],
+                   "answer": "A、从1919年到1949年，他的代表作有短篇集《隔膜》、童话集《稻草人》、长篇小说《倪焕之》《文艺谈.四十则》,B、他为新文学奠基，是我国现代教育的先驱者，是我国业绩卓著的出版家,C、他是著名的社会活动家，抗战胜利后就与民进合作，投身于爱国民主运动,D、新中国成立之后，他先后担任ZY人民政府出版总署副署长兼编审局局长、教育部副部长兼人民教育出版社社长和总编、ZY文史研究馆馆长等职务",
+                   "basis": "依据：从1919年到1949年，他的代表作有短篇集《隔膜》、童话集《稻草人》、长篇小说《倪焕之》、《文艺谈.四十则》。他为新文学奠基，是我国现代教育的先驱者，为我国编辑出版工作做出了卓著的业绩。他是著名的社会活动家，抗战胜利后他就与民进开始合作，投身于爱国民主运动。1949年初，他应ZGZY的邀请辗转到达北平，在华北人民政府任教科书编审委员会主任，其后出席了中国人民政治协商会议第一届全体会议。新中国成立之后，他先后担任ZY人民政府出版总署副署长兼编审局局长、教育部副部长兼人民教育出版社社长和总编、ZY文史研究馆馆长等职务。"
+               },
+              {
+                   "id": 5,
+                   "question": "雷洁琼，出生于广东（ ），著名（ ）、法学家、（ ）和社会活动家。",
+                   "options": [
+                             "A、台山",
+                             "B、广州",
+                             "C、社会学家",
+                             "D、教育家"
+                   ],
+                   "answer": "B、广州,C、社会学家,D、教育家",
+                   "basis": "依据：雷洁琼（1905年—2011年），生于广州市，著名社会学家、法学家、教育家和社会活动家。"
+               },
+              {
+                   "id": 6,
+                   "question": "对于雷老早年参加救国救民斗争，叙述正确的是（ ）。",
+                   "options": [
+                             "A、早年抱着\"教育救国\"的愿望赴美留学",
+                             "B、在美国求学期间曾积极参加\"反帝大同盟\"的进步活动",
+                             "C、积极投身抗日救亡运动，参加了\"一二·九\"学生反对日本侵略者的示威游行",
+                             "D、到江西参加战地服务工作，先后任江西省妇女生活改进会负责人、江西省战斗妇女班干部训练班主任等职"
+                   ],
+                   "answer": "A、早年抱着\"教育救国\"的愿望赴美留学,B、在美国求学期间曾积极参加\"反帝大同盟\"的进步活动,C、积极投身抗日救亡运动，参加了\"一二·九\"学生反对日本侵略者的示威游行,D、到江西参加战地服务工作，先后任江西省妇女生活改进会负责人、江西省战斗妇女班干部训练班主任等职",
+                   "basis": "依据：1925年，她抱着\"教育救国\"的愿望赴美留学。1931年获南加利福尼亚大学硕士学位。在美国求学期间曾积极参加\"反帝大同盟\"的进步活动。回国后在燕京大学、东吴大学、圣约翰大学等高等学府任教。她积极参加抗日救亡运动，1935年\"一二.九\"学生运动爆发时，燕京大学学生走上北平街头，举行反对日本侵略者的示威游行，雷洁琼是燕京大学唯一参加这次游行的女教师。1937年冬，她放弃了燕京大学的教职，投身火热的抗日救亡斗争，到江西参加战地服务工作，先后任江西省妇女生活改进会负责人、江西伤兵管理委员会上校课长和江西省地方政治讲习院妇女班主任、江西省战斗妇女班干部训练班主任等职。1941年她被迫离开江西到上海东吴大学、沪江大学任教。"
+               },
+              {
+                   "id": 7,
+                   "question": "我国著名女作家、教育家谢冰心,在五四运动的影响下走上了写作的道路，她得风气之先，也开风气之先，她的代表作是（ ）（ ）（ ）（ ）等。",
+                   "options": [
+                             "A、《寄小读者》",
+                             "B、《繁星》",
+                             "C、《红鬃马》",
+                             "D、《春水》",
+                             "E、《小桔灯》"
+                   ],
+                   "answer": "A、《寄小读者》,B、《繁星》,D、《春水》,E、《小桔灯》",
+                   "basis": "依据：谢冰心是我国著名女作家、教育家。在五四运动的影响下，冰心走上了写作的道路，她得风气之先，也开风气之先，她的代表作是《寄小读者》、《繁星》、《春水》、《小桔灯》等。《红鬃马》不是冰心的著作，而是五四时期活跃于北京文坛的著名女作家石平梅的代表作。"
+               },
+              {
+                   "id": 8,
+                   "question": "以下对车向忱在抗战期间的贡献叙述正确的是（ ）。",
+                   "options": [
+                             "A、1931年九一八事变后，他参与发起成立东北民众抗日救国会",
+                             "B、1932年1月4日，他自告奋勇，先后三次潜回东北敌后，联络各股义勇军",
+                             "C、1932年8月27日，他担任救国会在哈尔滨开办的大同疗养院的院长，该院是义勇军和地下党的联络机构",
+                             "D、1937年2月,他为东北流亡子弟办起了竞存小学"
+                   ],
+                   "answer": "A、1931年九一八事变后，他参与发起成立东北民众抗日救国会,B、1932年1月4日，他自告奋勇，先后三次潜回东北敌后，联络各股义勇军,C、1932年8月27日，他担任救国会在哈尔滨开办的大同疗养院的院长，该院是义勇军和地下党的联络机构,D、1937年2月,他为东北流亡子弟办起了竞存小学",
+                   "basis": "依据：1931年九一八事变后，他参与发起成立东北民众抗日救国会，多次召开会议研讨如何支援义勇军。1932年1月4日，车向忱自告奋勇，先后三次潜回东北敌后，联络各股义勇军。他化名杨秀东，装扮成卖药先生，把救国会和张学良用白绫子写给义勇军的委任状和密信藏在贴身棉衣里，由宋黎、李述全陪同，北上慰问各地义勇军。1932年8月27日，车向忱再次回东北。同年，救国会在哈尔滨开办了一所医院，取名大同疗养院，车向忱亲任院长。大同疗养院开业后，各路义勇军的联络员以患者或药商的名义来到这里接洽相关事宜，拿到救国会的委任状、密信、活动经费等。中共满洲省委的地下党员也通过救国会的关系，来疗养院接头，研究工作。1937年2月,他看到仍有许多流亡子弟需要读书，遂办起了竞存小学，为了解决办学经费和师资缺乏的困难，他秘密地来到八路军办事处，见到了周恩来副主席，周副主席非常关怀东北竞存小学并安排了叶剑英、李克农等同志帮助竞存学校解决经费等困难。"
+               },
+              {
+                   "id": 9,
+                   "question": "以下对林汉达在抗战胜利后的活动叙述正确的是（ ）。",
+                   "options": [
+                             "A、抗战胜利后，他回到之江大学任教育系主任、教务长，积极投身爱国民主运动，成为上海有名的进步教授",
+                             "B、1945年底，与马叙伦、王绍鏊等共同发起成立中国民主促进会",
+                             "C、1946年6月参与筹划上海人民反内战暨欢送和平请愿团赴京大会",
+                             "D、在6月23日举行的十万人参加的欢送大会上他与王绍鏊、陶行知等三人担任大会执行主席"
+                   ],
+                   "answer": "A、抗战胜利后，他回到之江大学任教育系主任、教务长，积极投身爱国民主运动，成为上海有名的进步教授,B、1945年底，与马叙伦、王绍鏊等共同发起成立中国民主促进会,C、1946年6月参与筹划上海人民反内战暨欢送和平请愿团赴京大会,D、在6月23日举行的十万人参加的欢送大会上他与王绍鏊、陶行知等三人担任大会执行主席",
+                   "basis": "依据：抗战胜利后，回之江大学任教育系主任、教务长，积极投身爱国民主运动，成为上海有名的进步教授。1945年底，与马叙伦、王绍鏊等共同发起成立中国民主促进会，当选为常务理事。1946年5月，上海人民团体联合会成立，被推选为常务理事。1946年6月参与筹划上海人民反内战暨欢送和平请愿团赴京大会,在6月23日举行的十万人参加的欢送大会上他与王绍鏊、陶行知等三人担任大会执行主席，作了慷慨激昂的讲话，与国民党当局作坚决的斗争。"
+               },
+              {
+                   "id": 10,
+                   "question": "以下对吴贻芳从政生涯叙述正确的是（ ）。",
+                   "options": [
+                             "A、1938年7月6日，国民政府在汉口召开第一届国民参政会，她与ZG代表毛泽东、董必武等一道被聘为国民参政会参政员",
+                             "B、1941年3月1日，国民参政会第二届第一次大会在重庆开幕，会议选出蒋介石、吴贻芳等5人组成主席团",
+                             "C、1943年3月，她组织\"中国六教授团\"率赴美宣传抗日战争，争取美国朝野支持",
+                             "D、1945年4月，她作为中国无党派代表与首席代表宋子文、ZG代表董必武等赴美国旧金山出席联合国制宪大会，成为在《联合国宪章》上签字的第一位女性"
+                   ],
+                   "answer": "A、1938年7月6日，国民政府在汉口召开第一届国民参政会，她与ZG代表毛泽东、董必武等一道被聘为国民参政会参政员,B、1941年3月1日，国民参政会第二届第一次大会在重庆开幕，会议选出蒋介石、吴贻芳等5人组成主席团,C、1943年3月，她组织\"中国六教授团\"率赴美宣传抗日战争，争取美国朝野支持,D、1945年4月，她作为中国无党派代表与首席代表宋子文、ZG代表董必武等赴美国旧金山出席联合国制宪大会，成为在《联合国宪章》上签字的第一位女性",
+                   "basis": "依据：1938年7月6日，国民政府在汉口召开第一届国民参政会，吴贻芳与ZG代表毛泽东、董必武等一道，被聘为国民参政会参政员。1941年3月1日，国民参政会第二届第一次大会在重庆开幕，会议选出蒋介石、吴贻芳等5人组成主席团。此后，吴贻芳连续当选为第三届和第四届国民参政会5人主席团的成员。1943年3月，吴贻芳组织\"中国六教授团\"率赴美宣传抗日战争，争取美国朝野支持，总统罗斯福盛赞她为\"智慧女神\"。1945年4月，吴贻芳作为中国无党派代表与首席代表宋子文、ZG代表董必武等赴美国旧金山出席联合国制宪大会，成为在《联合国宪章》上签字的第一位女性。"
+               },
+              {
+                   "id": 11,
+                   "question": "对于葛志成抗战胜利后参加的爱国民主运动活动叙述正确的是（ ）。",
+                   "options": [
+                             "A、抗战胜利后，他会同上海教育界进步人士发起组织了上海第一个教师群众团体——上海小学教师联合进修会，当选为理事长",
+                             "B、1946年1月加入中国民主促进会，3月他以人团联筹备委员会委员的身份开展工作",
+                             "C、1946年5月，当选为上海人民团体联合会理事，参与\"6.23\"反内战大会的筹备工作",
+                             "D、1948年3月，他领导小教联联合上海市中等教育研究会，掀起了一场全市规模的\"上海市各界抢救教育危机\"的斗争"
+                   ],
+                   "answer": "A、抗战胜利后，他会同上海教育界进步人士发起组织了上海第一个教师群众团体——上海小学教师联合进修会，当选为理事长,B、1946年1月加入中国民主促进会，3月他以人团联筹备委员会委员的身份开展工作,C、1946年5月，当选为上海人民团体联合会理事，参与\"6.23\"反内战大会的筹备工作,D、1948年3月，他领导小教联联合上海市中等教育研究会，掀起了一场全市规模的\"上海市各界抢救教育危机\"的斗争",
+                   "basis": "依据：抗战胜利后，他积极投入爱国民主运动。在党的领导下，他会同上海教育界进步人士发起组织了上海第一个教师群众团体——上海小学教师联合进修会，当选为理事长。他于1946年1月加入中国民主促进会，3月他以人团联筹备委员会委员的身份开展工作，1946年5月，当选为上海人民团体联合会理事。他团结、组织广大小学教师，参加上海六二三反内战大会和\"争取教师职业保障\"\"抢救教育危机\"\"反饥饿、反内战、反迫害\"的一系列民主运动，与国民党反动派进行顽强不屈的斗争。1948年3月，他作为小教联的理事长，联合了上海市中等教育研究会，掀起了一场全市规模的\"上海市各界抢救教育危机\"的斗争。6月28日，小教联等团体又引导这场斗争朝反饥饿、反迫害的方向发展，组织了1000多名教师上街游行示威，抗议国民党对教育界的饥饿压迫政策，参加游行示威的教师们冒雨静坐街头27小时，迫使当局答应了全部条件，为配合人民解放战争作出了突出贡献。此后，他被列入黑名单，受到国民党反动派的迫害。1948年秋辗转抵达苏北解放区，随后进入北平。"
+               },
+              {
+                   "id": 12,
+                   "question": "抗战期间和抗战胜利以后，对于柯灵参加的爱国民主活动叙述正确的是（ ）。",
+                   "options": [
+                             "A、抗战爆发后，柯灵先后主编《文汇报》副刊《世纪风》和《万象》杂志，曾两度被日本宪兵逮捕",
+                             "B、抗战胜利后，1945年9月8日，他与唐弢创办了抗战胜利后上海第一份进步刊物《周报》",
+                             "C、1945年12月30日，柯灵与马叙伦、王绍鏊、周建人、雷洁琼、赵朴初等发起成立中国民主促进会",
+                             "D、柯灵曾直接当选为民进第一、二届理事会理事"
+                   ],
+                   "answer": "A、抗战爆发后，柯灵先后主编《文汇报》副刊《世纪风》和《万象》杂志，曾两度被日本宪兵逮捕,B、抗战胜利后，1945年9月8日，他与唐弢创办了抗战胜利后上海第一份进步刊物《周报》,C、1945年12月30日，柯灵与马叙伦、王绍鏊、周建人、雷洁琼、赵朴初等发起成立中国民主促进会",
+                   "basis": "依据：抗战爆发后，柯灵冒着生命危险在\"孤岛\"上海坚持战斗，先后主编《文汇报》副刊《世纪风》和《万象》杂志，曾两度被日本宪兵逮捕，他面对敌人酷刑大义凛然，坚贞不屈。抗战胜利后，1945年9月8日，他又与唐弢创办抗战胜利后上海第一份进步刊物《周报》，站在反内战的前哨，不断揭露国民党压制民主的暴行。1945年12月30日，柯灵与马叙伦、王绍鏊、周建人、雷洁琼、赵朴初等发起成立中国民主促进会，在《周报》上发表了民进《对于时局的宣言》。柯灵当选为民进第一届理事会理事。1946年8月24日，《周报》出版还不满一年，就被国民党当局查禁。D项不准确，1947年2月，柯灵当选为民进第二届理事会候补理事，因理事严景耀离沪，大会当即决议柯灵替补为理事，并不是直接当选为理事。"
+               }
+                // 此处省略剩余11题，实际使用时补充完整
+            ],
+            
+            // 五、参政议政类
+            "参政议政判断题(5道)": [
+              {
+                   "id": 1,
+                   "question": "1981年全国政协五届四次会议期间，徐伯昕、吴贻芳、史念海、李霁野、张明养、叶至善、徐楚波、郑效洵、马力可、霍懋征、葛志成、方明、巫宝三、张景宁、叶圣陶、雷洁琼、柯灵等17位委员向大会提交了《建议确定全国教师节日期及活动内容》的提案，当即正式批准每年的9月10日为教师节。",
+                   "options": ["正确", "错误"],
+                   "answer": "错误",
+                   "basis": "依据：1985年1月21日，第六届全国人民代表大会常务委员会第九次会议通过了国务院提请审议的关于建立\"教师节\"的议案。"
+               },
+              {
+                   "id": 2,
+                   "question": "1981年10月，叶圣陶针对当时社会上片面追求升学率的错误倾向，发表了《我呼吁》的文章。",
+                   "options": ["正确", "错误"],
+                   "answer": "正确",
+                   "basis": "依据：1981年10月，叶圣陶副主席针对当时社会上片面追求升学率的错误倾向，发表了《我呼吁》的文章，呼吁有关部门要端正教育思想，全社会各有关方面要采取\"比说话更有效的措施\"，把中学生从片面追求升学率的重压下解救出来，让他们全面健康地发展。"
+               },
+              {
+                   "id": 3,
+                   "question": "1986年，民进就起草了《教师法（草案）》，送交有关部门，之后又广泛征求会内外教师的意见，不断修改充实。这一做法得到了广大教师的热情支持，也引起了国家有关部门的重视，对后来全国人大常委会制定通过《教师法》起了促进作用。",
+                   "options": ["正确", "错误"],
+                   "answer": "正确",
+                   "basis": "依据：民进五大后，各级组织积极参政议政，建言献策，1984年至1986年，ZGZY就发展经济、加快社会主义物质文明和社会主义精神文明建设作出了一系列重大决策，如《关于经济体制改革的决定》、《关于科学技术体制改革的决定》、《关于教育体制改革的决定》、《关于社会主义精神文明建设指导方针的决议》等，民进领导人都坦诚地提出意见和建议。民进还为《教师法》的制定献计出力。1986年，民进就起草了《教师法（草案）》，送交有关部门，之后又广泛征求会内外教师的意见，不断修改充实。这一做法得到了广大教师的热情支持，也引起了国家有关部门的重视，对后来全国人大常委会制定通过《教师法》起了促进作用。"
+               },
+              {
+                   "id": 4,
+                   "question": "1989 年4 月，雷洁琼主席提议，在全会开展\"尊师重教一元钱奉献\"、建立\"尊师重教基金\"的活动。",
+                   "options": ["正确", "错误"],
+                   "answer": "正确",
+                   "basis": "依据：1989 年4 月，雷洁琼主席提议，在全会开展\"尊师重教一元钱奉献\"、建立\"尊师重教基金\"的活动。这一倡议得到了广大会员和所联系群众的积极支持，在不长的时间里即募集到10 万余元。民进ZY成立了以雷洁琼为理事长的尊师重教基金理事会，用这笔资金开展尊师重教活动。这是民进的一个创举。"
+               },
+              {
+                   "id": 5,
+                   "question": "1994年，因北京王府井大街改扩建工程，使全国最大的书店----王府井新华书店出现了\"存留未决\"的问题。雷洁琼于当年11月2日在《光明日报》发表了《我们呼吁》的署名文章，表达对王府井新华书店和首都文化市场以及整个精神文明建设的关注。",
+                   "options": ["正确", "错误"],
+                   "answer": "错误",
+                   "basis": "依据：应为雷洁琼和民进ZY的九位副主席发表联名文章。"
+               }
+                // 此处省略剩余4题，实际使用时补充完整
+            ],
+            "参政议政单选(5道)": [
+              {
+                   "id": 1,
+                   "question": "关于民进成员建议建立\"教师节\"一事，以下各选项中不准确的一项是（）。",
+                   "options": ["A、1981年全国政协五届四次会议期间，叶圣陶、雷洁琼、方明等17位委员向大会提交了《建议确定全国教师节日期及活动内容》的提案", "B、1985年1月21日，第六届全国人民代表大会常务委员会第九次会议通过了国务院提请审议的关于建立\"教师节\"的议案", "C、正式批准每年的9月9日为教师节", "D、这一法定节日的诞生，凝聚了民进多年呼吁和争取的辛劳"],
+                   "answer": "C、正式批准每年的9月9日为教师节",
+                   "basis": "依据：1981年全国政协五届四次会议期间，徐伯昕、吴贻芳、史念海、李霁野、张明养、叶至善、徐楚波、郑效洵、马力可、霍懋征、葛志成、方明、巫宝三、张景宁、叶圣陶、雷洁琼、柯灵等17位委员向大会提交了《建议确定全国教师节日期及活动内容》的提案。1985年1月21日，第六届全国人民代表大会常务委员会第九次会议通过了国务院提请审议的关于建立\"教师节\"的议案，正式批准每年的9月10日为教师节。从此，庆祝教师节成为全国人民政治生活中的一件大事，这一法定节日的诞生，凝聚了民进多年呼吁和争取的辛劳。C项不准确。"
+               },
+              {
+                   "id": 2,
+                   "question": "1983年5月，因发生（）的事件，周建人主席、叶圣陶副主席联名致信ZGZY办公厅，要求有关方面严肃处理。以下正确的一项是（）。",
+                   "options": ["A、河北完县发生殴打小学教师事件", "B、王府井大街改建，王府井新华书店\"存留未决\"", "C、四川长寿县女教师被毒打和侮辱"],
+                   "answer": "C、四川长寿县女教师被毒打和侮辱",
+                   "basis": "依据：1983年5月，因发生四川长寿县女教师被毒打和侮辱的事件，周建人主席、叶圣陶副主席联名致信ZGZY办公厅，要求有关方面严肃处理。"
+               },
+              {
+                   "id": 3,
+                   "question": "1985年1月，全国人大常委会批准9月10日为教师节。民进ZY宣传部精心组织、策划拍摄了歌颂人民教师的电视剧（）上下集，作为民进在教师节为全国教育工作者奉献的一份厚礼，这是民主党派ZY组织拍摄的第一部电视剧，由ZY电视台在第一个教师节晚上向全国播放。以下正确的一项是（）。",
+                   "options": ["A、《同舟共济》", "B、《托着太阳升起的人》", "C、《心心相印》", "D、《民主之澜》"],
+                   "answer": "B、《托着太阳升起的人》",
+                   "basis": "依据：1985年1月，全国人大常委会批准9月10日为教师节。民进ZY宣传部精心组织、策划拍摄了歌颂人民教师的电视剧《托着太阳升起的人》上下集，作为民进在教师节为全国教育工作者奉献的一份厚礼，这是民主党派ZY组织拍摄的第一部电视剧，由ZY电视台在第一个教师节晚上向全国播放。"
+               },
+              {
+                   "id": 4,
+                   "question": "关于民进参与制定《教师法》一事，以下各选项中不准确的一项是（）。",
+                   "options": ["A、1981年，民进就起草了《教师法（草案）》，送交有关部门", "B、广泛征求会内外教师的意见，不断修改充实", "C、引起了国家有关部门的重视", "D、对后来全国人大常委会制定通过《教师法》起了促进作用"],
+                   "answer": "A、1981年，民进就起草了《教师法（草案）》，送交有关部门",
+                   "basis": "依据：1986年，民进起草了《教师法（草案）》，送交有关部门，之后又广泛征求会内外教师的意见，不断修改充实。这一做法得到了广大教师的热情支持，也引起了国家有关部门的重视，对后来全国人大常委会制定通过《教师法》起了促进作用。"
+               },
+              {
+                   "id": 5,
+                   "question": "1994年，因北京王府井大街改扩建工程，使全国最大的书店王府井新华书店发生\"存留未决\"问题，一时成为社会热点。雷洁琼主席和陈舜礼等九位副主席在11月2日《光明日报》上发表了（）的联名文章，在社会引起很大反响。ZG北京市委、北京市政府也高度重视，经过研究，决定在书店原址附近建造新的书店，且面积大幅度扩大。以下两个选项中正确的一项是（）。",
+                   "options": ["A、《我们呼吁》", "B、《我呼吁》"],
+                   "answer": "A、《我们呼吁》",
+                   "basis": "依据：1994年，因北京王府井大街改扩建工程，使全国最大的书店----王府井新华书店出现了\"存留未决\"的问题，一时成为人们关心的一个社会热点。雷洁琼和民进ZY的九位副主席一起，于当年11月2日在《光明日报》发表了《我们呼吁》的联名文章，表达对王府井新华书店和首都文化市场以及整个精神文明建设的关注。文章刊出后，在社会引起很大反响，首都其他报纸纷纷转载。ZG北京市委、市政府高度重视，经过研究，决定在书店原址附近建造新的王府井新华书店，且面积大幅度扩大。"
+               }
+                // 此处省略剩余4题，实际使用时补充完整
+            ],
+            "参政议政多选(6道)": [              
+             {
+                   "id": 1,
+                   "question": "1980年至1981年，民进先后在全会开展\"双献\"活动，受到ZGZY的高度重视和称赞。\"双献\"是指（ ）。",
+                   "options": ["A、为制定教育计划献计献策", "B、为制定教育体制献计献策", "C、为出版发展献计献策", "D、为振兴中华献计献策"],
+                   "answer": "A、为制定教育计划献计献策,B、为制定教育体制献计献策",
+                   "basis": "依据：1980年3月，ZGZY提议要制订适合国民经济发展需要的教育计划和教育体制。4月7日，民进中常会作出决定，在全会开展一次为制定教育计划和教育体制献计献策的群众运动，简称\"双献\"。"
+               },
+              {
+                   "id": 2,
+                   "question": "对于叶圣陶副主席于1981年抵制片面追求升学率的错误倾向的正确叙述是（ ）。",
+                   "options": ["A、1981年10月，发表了《我呼吁》的文章", "B、呼吁有关部门要端正教育思想，采取有效措施，把学生从片面追求升学率的重压下解救出来", "C、受到ZGZY和政府的重视", "D、在当年11月举行的全国人大五届五次会议上，政府总理在工作报告中肯定了叶圣陶的意见"],
+                   "answer": "A、1981年10月，发表了《我呼吁》的文章,B、呼吁有关部门要端正教育思想，采取有效措施，把学生从片面追求升学率的重压下解救出来,C、受到ZGZY和政府的重视",
+                   "basis": "依据：1981年10月，叶圣陶副主席针对当时社会上片面追求升学率的错误倾向，发表了《我呼吁》的文章，呼吁有关部门要端正教育思想，全社会各有关方面要采取\"比说话更有效的措施\"，把中学生从片面追求升学率的重压下解救出来，让他们全面健康地发展。叶圣陶副主席的文章得到了ZGZY和政府的重视，在当年11月举行的全国人大五届四次会议上，政府总理在工作报告中肯定了叶圣陶的意见，要求\"各有关方面认真注意这个问题，切实加以改正\"。D项应为五届四次会议。"
+               },
+             {
+                   "id": 3,
+                   "question": "对于1989 年雷洁琼在全会倡导尊师重教一事，以下叙述正确的选项是（ ）",
+                   "options": ["A、1989 年4 月，雷洁琼主席提议，在全会开展\"尊师重教一元钱奉献\"、建立\"尊师重教基金\"的活动", "B、这一倡议得到了广大会员和所联系群众的积极支持，在不长的时间里即募集到10 万余元", "C、民进ZY成立了以雷洁琼为理事长的尊师重教基金理事会，用这笔资金开展尊师重教活动", "D、这是民进的一个创举"],
+                   "answer": "A、1989 年4 月，雷洁琼主席提议，在全会开展\"尊师重教一元钱奉献\"、建立\"尊师重教基金\"的活动,B、这一倡议得到了广大会员和所联系群众的积极支持，在不长的时间里即募集到10 万余元,C、民进ZY成立了以雷洁琼为理事长的尊师重教基金理事会，用这笔资金开展尊师重教活动,D、这是民进的一个创举",
+                   "basis": "依据：1989 年4 月，雷洁琼主席提议，在全会开展\"尊师重教一元钱奉献\"、建立\"尊师重教基金\"的活动。这一倡议得到了广大会员和所联系群众的积极支持，在不长的时间里即募集到10 万余元。民进ZY成立了以雷洁为理事长的尊师重教基金理事会，用这笔资金开展尊师重教活动。这是民进的一个创举。"
+               },
+              {
+                   "id": 4,
+                   "question": "民进第十次代表大会以来，民进着重搭建工作平台，与（ ）共同组建\"中国教育政策研究院\"，与（ ）成立合作中心，与（ ）建立合作关系，使民进在经济形势和社会建设的分析与对策研究方面有了稳固的（ ）。以下依次正确的选项是（ ）。",
+                   "options": ["A、北京师范大学", "B、上海社科院", "C、清华大学政治经济学研究中心", "D、\"智囊\""],
+                   "answer": "A、北京师范大学,B、上海社科院,C、清华大学政治经济学研究中心",
+                   "basis": "依据：民进第十次代表大会以来，民进着重搭建工作平台，与北京师范大学共同组建\"中国教育政策研究院\"，与上海社科院成立合作中心，与清华大学政治经济学研究中心建立合作关系，使民进在经济形势和社会建设的分析与对策研究方面有了稳固的\"智库\"。D项不准确，应为智库。"
+               },
+              {
+                   "id": 5,
+                   "question": "全国政协成立70年来100件有影响力重要提案，民进ZY和民进会员提案入选的有（ ）。",
+                   "options": ["A、《请政府明定10月1日为中华人民共和国国庆日以代替10月10日的旧国庆日的建议案》", "B、《大力宣传和提倡迟婚与计划生育的若干提案》", "C、《采取有效措施积极推进普及教育以利四化建设案》", "D、《建议确定全国教师节日期及活动内容案》", "E、《关于尽快确定中华人民共和国国歌的法律定位并制定国歌法的提案》", "F、《关于尽快制定民办教育法促进民办教育健康发展的提案》", "G、《关于加大统筹力度稳步推进中小城镇建设的提案》", "H、《关于加强全面从严治党制度建设的提案》"],
+                   "answer": "A、《请政府明定10月1日为中华人民共和国国庆日以代替10月10日的旧国庆日的建议案》,B、《大力宣传和提倡迟婚与计划生育的若干提案》,C、《采取有效措施积极推进普及教育以利四化建设案》,D、《建议确定全国教师节日期及活动内容案》,E、《关于尽快确定中华人民共和国国歌的法律定位并制定国歌法的提案》,F、《关于尽快制定民办教育法促进民办教育健康发展的提案》,G、《关于加大统筹力度稳步推进中小城镇建设的提案》,H、《关于加强全面从严治党制度建设的提案》",
+                   "basis": "依据：2019年，民进ZY8件提案入选全国政协成立以来100件有影响力重要提案。这8件提案分别是马叙伦提交的《请政府明定10月1日为中华人民共和国国庆日以代替10月10日的旧国庆日的建议案》（1949年），王历畊等54人提交的《大力宣传和提倡迟婚与计划生育的若干提案》（1957年），周建人等157人提交的《采取有效措施积极推进普及教育以利四化建设案》（1980年），徐伯昕、叶圣陶、雷洁琼、方明、徐楚波等18人提交的《建议确定全国教师节日期及活动内容案》（1981年），蒋家祥等2人提交的《关于尽快确定中华人民共和国国歌的法律定位并制定国歌法的提案》（1995年），民进ZY提交的《关于尽快制定民办教育法促进民办教育健康发展的提案》（1997年）、《关于加大统筹力度稳步推进中小城镇建设的提案》（2010年）和《关于加强全面从严治党制度建设的提案》（2017年）。"
+               },
+              {
+                   "id": 6,
+                   "question": "2019年，民进ZY创办（ ）、（ ），分别聚焦推动文化服务业、出版传媒业的高质量发展；以（ ）为主题，举办（ ）。以下叙述正确的是（ ）。",
+                   "options": ["A、民进开明文化研讨会", "B、开明出版传媒论坛", "C、\"教师教育振兴与师范院校的使命\"", "D、中国教育发展论坛", "E、中国教师发展论坛"],
+                   "answer": "A、民进开明文化研讨会,B、开明出版传媒论坛,C、\"教师教育振兴与师范院校的使命\",E、中国教师发展论坛",
+                   "basis": "依据：2019年，民进ZY创办民进开明文化研讨会、开明出版传媒论坛，分别聚焦推动文化服务业、出版传媒业的高质量发展；以\"教师教育振兴与师范院校的使命\"为主题，举办中国教师发展论坛。D项不准确。"
+               }
+                // 此处省略剩余5题，实际使用时补充完整
+            ],
+            
+            // 六、社会服务类
+            "社会服务单选(3道)": [
+              {
+                   "id": 1,
+                   "question": "1982年2月，民进浙江省委会在杭州创办了民进浙江省委会（ ），开创了民主党派开展面向社会的咨询服务的先河，产生了良好的社会影响。以下正确的一项是（ ）。",
+                   "options": ["A、业余培训学校", "B、经济咨询网络", "C、妇幼保健咨询服务站", "D、文教信息服务中心"],
+                   "answer": "C、妇幼保健咨询服务站",
+                   "basis": "依据：1982年2月，民进浙江省委会在杭州创办了民进浙江省委会妇幼保健咨询服务站，开创了民主党派开展面向社会的咨询服务的先河，产生了良好的社会影响。"
+               },
+              {
+                   "id": 2,
+                   "question": "为加强社会服务工作，民进ZY设立社会服务部这个重要机构，时间是（ ）。",
+                   "options": ["A、1985年", "B、1989年", "C、1991年", "D、1994年"],
+                   "answer": "B、1989年",
+                   "basis": "依据：1989年4月，民进ZY设立了社会服务部，该部是我会开展社会服务工作的重要机构。"
+               },
+              {
+                   "id": 3,
+                   "question": "上世纪九十年代我会社会服务工作中涌现了一大批先进典型，以下各项叙述不正确的是（ ）。",
+                   "options": ["A、被评为全国扶贫先进个人的马恩正", "B、被誉为\"平民市长\"的合肥市副市长朱维芳", "C、身残志坚的女教师秦百兰", "D、被誉为孔繁森式的好医生陶祥洛"],
+                   "answer": "C、身残志坚的女教师秦百兰",
+                   "basis": "依据：被群众誉为\"孔繁森式的好医生\"的浙江医科大学教授陶祥洛、被誉为\"老黄牛\"的山东烟台市体校校长陈文卿、身残志坚的辽宁锦州市青年女画家秦百兰、被群众誉为\"平民市长\"的安徽合肥市副市长朱维芳、顽强与病魔作斗争的安徽马鞍山市女教师胡平平、在\"生物化学分子工程学科\"取得国际领先成果的天津大学教授何志敏、被评为全国扶贫先进个人的马恩正等一大批民进会员，成为社会服务工作的先进典型。C项秦百兰是女画家。"
+               }
+                // 此处省略剩余2题，实际使用时补充完整
+            ],
+            "社会服务多选(8道)": [
+              {
+                   "id": 1,
+                   "question": "建国初期，工作在科研、科技、医疗等岗位上的民进成员，同样为社会主义建设事业积极奉献力量，他们中有（ ）。",
+                   "options": ["A、著名化学家、南开大学教授杨石先", "B、地矿专家王鸿祯、岳希新", "C、农业专家黄敬芳", "D、物理专家金建中、肖健、汪德熙", "E、化学专家蔡镏生、刘复光", "F、机械专家吴学蔺", "G、医学专家刘震华、左克明、刘天香", "H、经济学家巫宝三"],
+                   "answer": "A、著名化学家、南开大学教授杨石先,B、地矿专家王鸿祯、岳希新,C、农业专家黄敬芳,D、物理专家金建中、肖健、汪德熙,E、化学专家蔡镏生、刘复光,F、机械专家吴学蔺,G、医学专家刘震华、左克明、刘天香,H、经济学家巫宝三",
+                   "basis": "依据：工作在科研、科技、医疗等岗位上的民进成员，同样为社会主义建设事业积极奉献力量。著名化学家、南开大学教授杨石先带领一班人，在五十年代末和六十年代初研制出了一批新型农药，填补了国内空白，为农业增产丰收作出了卓越的贡献。地矿专家王鸿祯、岳希新，农业专家黄敬芳，物理专家金建中、肖健、汪德熙，化学专家蔡镏生、刘复光，机械专家吴学蔺，医学专家刘震华、左克明、刘天香，经济学家巫宝三等都在各自的本职岗位上做出了显著成绩，为我国科学技术的进步发展作出了积极的贡献。"
+               },
+              {
+                   "id": 2,
+                   "question": "1981年4月，国家进行粉碎\"四人帮\"以后首次中国科学院学部委员的评选工作。经过严格评选，民进（）、金建中、（ ）、汪德熙、（ ）、陈荣悌、蔡镏生、（ ）、岳希新、吴学蔺、张沛霖等11名会员，被国务院批准为中国科学院学部委员。以下各项叙述正确的是（ ）。",
+                   "options": ["A、肖健", "B、申泮文", "C、杨石先", "D、王鸿祯"],
+                   "answer": "A、肖健,B、申泮文,C、杨石先,D、王鸿祯",
+                   "basis": "依据：1981年4月，国家进行粉碎\"四人帮\"以后首次中国科学院学部委员的评选工作。经过严格评选，民进肖健、金建中、申泮文、汪德熙、杨石先、陈荣悌、蔡镏生、王鸿祯、岳希新、吴学蔺、张沛霖等11名会员，被国务院批准为中国科学院学部委员。"
+               },
+              {
+                   "id": 3,
+                   "question": "1981年民进组织著名语言学家张志公、特级教师霍懋征等赴内蒙进行教学经验介绍，受到当地教育界的热烈欢迎。不久，北京、上海、天津、江苏、河北、浙江等地方也相继开展了这一活动。仅（ ）年多时间，这些地方组织先后到（ ）多个边远中小城市进行了讲学活动，作学术、业务知识报告（ ）余次，听众逾（ ）万人次。以下各项数字正确的是（ ）。",
+                   "options": ["A、一", "B、30", "C、230", "D、16"],
+                   "answer": "A、一,B、30,C、230,D、16",
+                   "basis": "依据：民进又组织著名语言学家张志公、特级教师霍懋征等赴内蒙进行教学经验介绍，受到当地教育界的热烈欢迎。不久，北京、上海、天津、江苏、河北、浙江等地方也相继开展了这一活动。仅一年多时间，这些地方组织先后到30多个边远中小城市进行了讲学活动，作学术、业务知识报告230余次，听众逾16万人次。"
+               },
+              {
+                   "id": 4,
+                   "question": "民进第八次全国代表大会以后，围绕国家实施西部大开发战略，我会不断创新，开展了六个西进活动，以下表述正确的的是（ ）。",
+                   "options": ["A、星火西进", "B、青年星火西进", "C、城乡少年手拉手助学活动走进西部", "D、百名优秀教师西部行", "E、百企西进", "F、引资西进"],
+                   "answer": "A、星火西进,B、青年星火西进,C、城乡少年手拉手助学活动走进西部,D、百名优秀教师西部行,E、百企西进,F、引资西进",
+                   "basis": "依据：1998年民进八大以后围绕国家实施西部大开发战略，我会不断创新，开展了以星火西进、青年星火西进、城乡少年手拉手助学活动走进西部、百名优秀教师西部行、百企西进、引资西进为主题的\"六个西进\"活动。"
+               },
+              {
+                   "id": 5,
+                   "question": "民进第十一次全国代表大会以来，社会服务取得实效。在聚力脱贫攻坚方面，坚持将扶贫同扶志扶智相结合、变\"输血式\"扶贫为\"造血式\"扶贫的理念，持续参与（ ）试验区建设，扎实推进会ZY对口（ ）的定点扶贫，主动服务（ ）脱贫攻坚，服务（ ）等民族地区社会稳定和发展。以下选项中正确的是（ ）。",
+                   "options": ["A、毕节", "B、黔西南州安龙县", "C、湖南", "D、金沙"],
+                   "answer": "A、毕节,B、黔西南州安龙县,C、湖南",
+                   "basis": "依据：十一大以来，社会服务取得实效。在聚力脱贫攻坚方面，坚持将扶贫同扶志扶智相结合、变\"输血式\"扶贫为\"造血式\"扶贫的理念，持续参与毕节试验区建设，扎实推进会ZY对口黔西南州安龙县的定点扶贫，主动服务湖南脱贫攻坚，服务新疆等民族地区社会稳定和发展。D项应为新疆。"
+               },
+              {
+                   "id": 6,
+                   "question": "民进第十一次全国代表大会以来，民进以（ ）、（ ）帮扶为重点，ZY与地方组织联动，会内与会外力量合作，开展帮扶工作。以下选项中正确的是（ ）。",
+                   "options": ["A、教育", "B、医卫", "C、三农", "D、科技"],
+                   "answer": "A、教育,B、医卫",
+                   "basis": "依据：十一大以来，以教育、医卫帮扶为重点，ZY与地方组织联动，会内与会外力量合作，协调发达地区先进学校、医院参与对口共建，组织专家学者千余人次进行考察调研、开展智力咨询，资助用于改善教学、医疗条件的资金物资折合人民币5710余万元，举办培训班150余期，培训教师和医务人员2万余人次；推进产业扶贫，积极帮助引进农业科技扶贫资金和项目，支持企业界会员直接参与当地经济建设，总投资达149亿多元；推进生态扶贫，参与石漠化区域治理，继续援建农户水窖和学校水窖，农户直接受益人口1827人，惠及34所学校近2.4万名学生。"
+               },
+              {
+                   "id": 7,
+                   "question": "民进第十一次全国代表大会以来，社会服务品牌项目的社会影响不断提升。（ ）深入推进，持续举办（ ）、新疆（ ）、（ ）\"彩虹班\"\"同心助学\"等活动，为当地引入先进教学理念和优质教育资源，体现了民进的界别特色和优势。以下叙述正确的是（ ）。",
+                   "options": ["A、\"同心.彩虹行动\"", "B、教师培训班", "C、少数民族校长培训班", "D、贫困家庭学生职业教育", "E、贫困家庭女生职业教育"],
+                   "answer": "A、\"同心.彩虹行动\",B、教师培训班,C、少数民族校长培训班,E、贫困家庭女生职业教育",
+                   "basis": "依据：民进十一大以来，社会服务品牌项目的社会影响不断提升。\"同心.彩虹行动\"深入推进，持续举办教师培训班、新疆少数民族校长培训班、贫困家庭女生职业教育\"彩虹班\"\"同心助学\"等活动，为当地引入先进教学理念和优质教育资源，体现了民进的界别特色和优势。D项应为贫困家庭女生职业教育。"
+               },
+              {
+                   "id": 8,
+                   "question": "2013年以来，我会发挥民进界别特色，以中华传统文化为纽带，继续举办多届（ ）；以高端知识分子为对象，搭建小规模高层次的学术对话平台，举办四届（ ）论坛，深化与台湾社科界的联系；推动海峡两岸暨香港、澳门地区基础教育领域的交流往来向纵深发展，举办两届（ ）；探索两岸青年交流的新形式，引导会员为台湾青年到大陆实习提供帮助，支持举办（ ）。以下叙述正确的是（ ）。",
+                   "options": ["A、\"海峡两岸中华传统文化与现代化研讨会\"", "B、\"两岸学者共话\"", "C、\"海峡两岸暨港澳地区基础教育交流活动\"", "D、海峡两岸青年企业家创新发展与经济合作圆桌会议"],
+                   "answer": "A、\"海峡两岸中华传统文化与现代化研讨会\",B、\"两岸学者共话\",C、\"海峡两岸暨港澳地区基础教育交流活动\",D、海峡两岸青年企业家创新发展与经济合作圆桌会议",
+                   "basis": "依据：民进十一大以来，港澳台联谊不断拓展。发挥民进界别特色，以中华传统文化为纽带，继续举办多届\"海峡两岸中华传统文化与现代化研讨会\"；以高端知识分子为对象，搭建小规模高层次的学术对话平台，举办四届\"两岸学者共话\"论坛，深化与台湾社科界的联系；推动海峡两岸暨香港、澳门地区基础教育领域的交流往来向纵深发展，举办两届\"海峡两岸暨港澳地区基础教育交流活动\"；探索两岸青年交流的新形式，引导会员为台湾青年到大陆实习提供帮助，支持举办海峡两岸青年企业家创新发展与经济合作圆桌会议。"
+               }
+                // 此处省略剩余7题，实际使用时补充完整
+            ],
+            
+            // 七、自身建设类
+            "自身建设判断题(1道)": [
+              {
+                   "id": 1,
+                   "question": "至1949年6月19日，民进除北平的总部外，还有了华南和上海两个分会组织。",
+                   "options": ["正确", "错误"],
+                   "answer": "正确",
+                   "basis": "依据：1948年底，马叙伦、王绍鏊离港后，港九分会由徐伯昕具体负责，徐伯昕翌年3月应邀到北平，分会工作由陈秋安负责。1949年2月中旬，港九分会理事会郑重向总部提议，将港九分会改为华南分会。4月2日，总部理事会议同意分会提议，决定改港九分会为华南分会。1949年6月19日，经总部批准，上海分会正式成立，谢仁冰出任主任理事，赵朴初为副主任理事。至此，民进除北平的总部外，还有了华南和上海两个分会组织，这为以后民进在全国范围的发展打下了基础。"
+               }
+            ],
+            "自身建设单选(4道)": [
+              {
+                   "id": 1,
+                   "question": "1989年ZGZY《意见》颁布后，民进八届五次中常会通过了（ ）。",
+                   "options": ["A、《关于加强思想政治教育的意见》", "B、《关于进一步加强思想政治教育的意见》", "C、《关于进一步加强思想政治工作的决定》", "D、《关于加强思想政治工作的决定》"],
+                   "answer": "B、《关于进一步加强思想政治教育的意见》",
+                   "basis": "依据：1989年ZGZY《意见》颁布后，民进八届五次中常会通过了《关于进一步加强思想政治教育的意见》，明确提出了全会开展思想政治教育的基本任务，是对广大会员进行坚持四项基本原则和反对资产阶级自由化的教育，进行爱国主义教育、国情教育和会史会章的教育，进行民主党派同ZG长期合作优良传统的教育，进行时事政治的宣传和教育，通过教育进一步调动全会各级组织和广大会员的积极性，为建设有中国特色的社会主义作出新的贡献。"
+               },
+              {
+                   "id": 2,
+                   "question": "各级组织认真贯彻民进八届五次中常会通过的《关于进一步加强思想政治教育的意见》，以下不属于这些方法的一项是（ ）。",
+                   "options": ["A、\"我是一个民进会员\"活动", "B、\"三爱三为\"活动", "C、\"五讲四美三热爱\"活动", "D、\"三爱一敬\"活动"],
+                   "answer": "C、\"五讲四美三热爱\"活动",
+                   "basis": "依据：不少地方组织在方式方法上作了许多新的探索，采取了不少行之有效的好方法。如一些地方组织开展\"我是一个民进会员\"、\"三爱三为\"（即爱党、爱人民、爱民进坚定不移，为党、为人民、为民进多做贡献）的活动；有的地方开展\"三爱一敬\"（即爱祖国、爱社会主义、爱民进，敬重老同志）的活动。"
+               },
+              {
+                   "id": 3,
+                   "question": "987 年—1989 年，民进ZY创办了开明文教音像出版社、开明出版社和（ ）杂志，在全会的思想建设和繁荣出版事业中发挥了积极作用。",
+                   "options": ["A、《民进》","B、《开明》","C、《民主》"],
+                   "answer": "C、《民主》",
+                   "basis": "依据：《民主》杂志创刊于1989 年8 月，它是民进在新形势下，为宣传和坚持、完善ZGGCD领导的多党合作和政治协商制度而创办的向国内外公开发行的综合性月刊"
+               },
+              {
+                   "id": 4,
+                   "question": "严隽琪在2008年12月15日举行的民进纪念改革开放30周年座谈会上，首次鲜明提出了要在全会增强\"三个认同\"的政治理念，以下不正确的一项是（ ）。",
+                   "options": ["A、道路认同", "B、目标认同", "C、观念认同", "D、文化认同"],
+                   "answer": "C、观念认同",
+                   "basis": "依据：为了深入推进新形势下的政治交接，严隽琪在2008年12月15日举行的民进纪念改革开放30周年座谈会上，首次鲜明提出了要在全会增强\"三个认同\"的政治理念，即：一是增强\"道路认同\"，就是要坚持接受ZGGCD的领导，走中国特色社会主义的政治发展道路；二是增强\"目标认同\"，就是为全面建设小康社会、发展中国特色社会主义的共同目标而努力奋斗；三是增强\"文化认同\"，就是要加强党派自身的文化建设，形成价值理念的共识，以优秀中华文化的巨大魅力和民进的优良传统增强全体会员爱国爱会的情感，并为建设社会主义先进文化多做贡献。"
+               }
+                // 此处省略剩余3题，实际使用时补充完整
+            ],
+            "自身建设多选(5道)": [
+              {
+                   "id": 1,
+                   "question": "对民进历届领导人的叙述正确的是（ ）。",
+                   "options": ["A、第三届民进ZY理事会第一次全体理事会议选举马叙伦为ZY理事会主席", "B、民进六届一中全会选举周建人为民进ZY主席", "C、民进全国代表会议选举雷洁琼为民进ZY主席", "D、民进十届一中全会选举许嘉璐为民进ZY主席", "E、民进十二届一中全会选举严隽琪为民进ZY主席", "F、民进十四届一中全会选举蔡达峰为民进ZY主席"],
+                   "answer": "A、第三届民进ZY理事会第一次全体理事会议选举马叙伦为ZY理事会主席,B、民进六届一中全会选举周建人为民进ZY主席,C、民进全国代表会议选举雷洁琼为民进ZY主席,D、民进十届一中全会选举许嘉璐为民进ZY主席,E、民进十二届一中全会选举严隽琪为民进ZY主席,F、民进十四届一中全会选举蔡达峰为民进ZY主席",
+                   "basis": "依据：资料综合。"
+               },
+              {
+                   "id": 2,
+                   "question": "关于我会初期地方组织情况以下各项中叙述正确的是（ ）。",
+                   "options": ["A、1947年7月前民进不设地方组织", "B、1948年8月25日港九分会在香港成立", "C、1949年4月2日港九分会改为华南分会", "D、1949年6月19日北京分会成立"],
+                   "answer": "A、1947年7月前民进不设地方组织,B、1948年8月25日港九分会在香港成立,C、1949年4月2日港九分会改为华南分会",
+                   "basis": "依据：1947年7月前民进不设地方组织。在民进领导人马叙伦、王绍鏊、徐伯昕的直接领导下，1948年8月25日,港九分会在香港柯布连道8号3楼（华南救济会）举行成立大会。这是民进在全国首先建立的地方组织。1949年4月2日，总部理事会议同意分会提议，决定改港九分会为华南分会。1949年6月19日，经总部批准，民进上海分会正式成立，谢仁冰出任主任理事，赵朴初为副主任理事。C项不正确，北京分会成立于1950年9月10日。"
+               },
+              {
+                   "id": 3,
+                   "question": "1949年至民进第二次全国代表大会前，关于我会地方组织状况叙述正确的是（ ）。",
+                   "options": ["A、1949年6月19日民进上海分会成立", "B、1950年9月10日民进北京分会成立", "C、到1956年8月民进第二次全国代表大会前，全国有上海、北京、广州、杭州、天津、沈阳等6个分会", "D、有广西、陕西、武汉、南京、旅大、抚顺、苏州等7个分会筹委会"],
+                   "answer": "A、1949年6月19日民进上海分会成立,B、1950年9月10日民进北京分会成立,C、到1956年8月民进第二次全国代表大会前，全国有上海、北京、广州、杭州、天津、沈阳等6个分会,D、有广西、陕西、武汉、南京、旅大、抚顺、苏州等7个分会筹委会",
+                   "basis": "依据：1949年4月2日，总部理事会议同意分会提议，决定改港九分会为华南分会。1949年6月19日，经总部批准，民进上海分会正式成立，谢仁冰出任主任理事，赵朴初为副主任理事。1950年9月10日,北京分会成立。到1956年8月民进第二次全国代表大会前，全国共有上海、北京、广州、杭州、天津、沈阳6个分会和广西、陕西、武汉、南京、旅大、抚顺、苏州等7个分会筹委会。"
+               },
+              {
+                   "id": 4,
+                   "question": "对民进第十次全国代表大会以来高度重视理论研究和理性思考的举措叙述正确的是（ ）。",
+                   "options": ["A、会ZY成立了参政党理论研究会", "B、同ZY社会主义学院合作建立了参政党建设理论研究中心", "C、推动省级组织成立参政党理论研究会", "D、开展课题招标、专题研讨、理论征文"],
+                   "answer": "A、会ZY成立了参政党理论研究会,B、同ZY社会主义学院合作建立了参政党建设理论研究中心,C、推动省级组织成立参政党理论研究会,D、开展课题招标、专题研讨、理论征文",
+                   "basis": "依据：民进十大以来，高度重视理论研究和理性思考。会ZY成立了参政党理论研究会，同ZY社会主义学院合作建立了参政党建设理论研究中心，推动省级组织成立参政党理论研究会，促进理论研究水平与工作能力的同步提升。民进ZY每年开展课题招标，每年年底召开研讨会，在重要节点组织开展理论和会史征文活动。"
+               },
+              {
+                   "id": 5,
+                   "question": "民进第十一次全国代表大会以来，以重大纪念活动、会史教育和宣传为重点，学习、继承和弘扬民进优良传统。重大纪念活动包括（ ）。",
+                   "options": ["A、庆祝新中国和人民政协成立", "B、ZGGCD成立", "C、改革开放", "D、\"五一口号\"发布", "E、民进成立", "F、六二三下关事件"],
+                   "answer": "A、庆祝新中国和人民政协成立,B、ZGGCD成立,C、改革开放,D、\"五一口号\"发布,E、民进成立,F、六二三下关事件",
+                   "basis": "依据：民进十一大以来，以重大纪念活动、会史教育和宣传为重点，学习、继承和弘扬民进优良传统。重大纪念活动包括：庆祝新中国和人民政协成立、ZGGCD成立、改革开放、\"五一口号\"发布、民进成立、六二三下关事件等。"
+               }
+                // 此处省略剩余4题，实际使用时补充完整
+            ],
+            
+            // 八、上海民进类
+            "上海民进单选(5道)": [
+              {
+                   "id": 1,
+                   "question": "民进成立旧址纪念馆开馆的时间是（ ）",
+                   "options": ["A、1999年6月17日", "B、2005年12月18日", "C、2020年12月30日", "D、2021年12月30日"],
+                   "answer": "C、2020年12月30日",
+                   "basis": ""
+               },
+              {
+                   "id": 2,
+                   "question": "民进上海市分会成立时间是（ ）",
+                   "options": ["A、1945年12月30日", "B、1949年6月19日", "C、1950年9月10日", "D、1999年6月17日"],
+                   "answer": "B、1949年6月19日",
+                   "basis": ""
+               },
+              {
+                   "id": 3,
+                   "question": "民进上海市分会选举第一届理事会的选票上有一共多少人名（ ）",
+                   "options": ["A、33", "B、44", "C、75", "D、95"],
+                   "answer": "C、75",
+                   "basis": ""
+               },
+              {
+                   "id": 4,
+                   "question": "（ ）年，民进成立旧址被民进ZY认定为（ ）批民进会史教育基地的？（ ）",
+                   "options": ["A、1999年、第一", "B、2005年、第一", "C、2010年、第一", "D、2018年、第一"],
+                   "answer": "C、2010年、第一",
+                   "basis": ""
+               },
+              {
+                   "id": 5,
+                   "question": "（ ）年，雷洁琼铜像和生平事迹展、柯灵故居被民进ZY认定为（ ）批民进会史教育基地的？（ ）",
+                   "options": ["A、2010年、第一", "B、2005年、第二", "C、2022年、第二", "D、2024年、第三"],
+                   "answer": "C、2022年、第二",
+                   "basis": ""
+               },
+              {
+                   "id": 6,
+                   "question": "（ ）年，中国近现代新闻出版博物馆被民进ZY认定为（ ）批民进会史教育基地。",
+                   "options": ["A、2022年、第二", "B、2023年、第二", "C、2024年、第三", "D、2025年、第三"],
+                   "answer": "D、2025年、第三",
+                   "basis": ""
+               }
+                // 此处省略剩余4题，实际使用时补充完整
+            ],
+            "上海民进多选(1道)": [
+              {
+                   "id": 1,
+                   "question": "在上海，已被民进ZY认定的民进会史教育基地有（ ）",
+                   "options": ["A、民进成立旧址纪念馆", "B、雷洁琼生平事迹展", "C、柯灵故居", "D、中国近现代新闻出版博物馆"],
+                   "answer": "A、民进成立旧址纪念馆,B、雷洁琼生平事迹展,C、柯灵故居,D、中国近现代新闻出版博物馆",
+                   "basis": ""
+               }
+            ]
+        };
+
+        // 全局变量
+        let currentQuiz = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let answerRecords = JSON.parse(localStorage.getItem('answerRecords')) || [];
+        let collectedQuestions = JSON.parse(localStorage.getItem('collectedQuestions')) || [];
+        let currentQuestionType = ''; // 记录当前题目的类型（判断/单选/多选）
         
-        # 记录答题结果
-        record = {
-            "question_id": question["id"],
-            "category": category,
-            "user_answer": user_ans,
-            "is_correct": is_correct,
-            "answer_time": "2024-xx-xx xx:xx"  # 实际场景可替换为当前时间
+        // 初始化页面
+        function init() {
+            updateStats();
         }
-        user_data["answer_records"].append(record)
-        save_user_data()
         
-        # 最后一题不显示"下一题"提示
-        if i < len(questions):
-            input("按下回车键继续下一题...")
-    
-    # 展示答题结果
-    print(f"\n" + "="*50)
-    print(f"        专项答题完成！")
-    print(f"答题总数：{len(questions)}题")
-    print(f"正确数量：{correct_count}题")
-    print(f"正确率：{correct_count/len(questions)*100:.1f}%")
-    print("="*50)
-
-def run_random_answer():
-    """运行随机答题模式"""
-    while True:
-        num_input = input("\n请输入随机答题数量（1-20）：")
-        if num_input.isdigit() and 1 <= int(num_input) <= 20:
-            num = int(num_input)
-            break
-        print("输入无效，请输入1-20之间的整数！")
-    
-    random_questions = get_random_questions(num)
-    print(f"\n已从全题库随机抽取{num}题，开始答题！")
-    input("按下回车键开始答题...")
-    
-    correct_count = 0
-    for i, (category, question) in enumerate(random_questions, 1):
-        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
-        is_correct, user_ans = answer_question(category, question)
-        if is_correct:
-            correct_count += 1
-        
-        # 记录答题结果
-        record = {
-            "question_id": question["id"],
-            "category": category,
-            "user_answer": user_ans,
-            "is_correct": is_correct,
-            "answer_time": "2024-xx-xx xx:xx"
+        // 更新统计数据
+        function updateStats() {
+            const totalAnswered = answerRecords.length;
+            const correctCount = answerRecords.filter(record => record.isCorrect).length;
+            const accuracyRate = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+            
+            document.getElementById('totalAnswered').textContent = `${totalAnswered}题`;
+            document.getElementById('accuracyRate').textContent = `${accuracyRate}%`;
+            document.getElementById('collectedCount').textContent = `${collectedQuestions.length}题`;
         }
-        user_data["answer_records"].append(record)
-        save_user_data()
         
-        if i < num:
-            input("按下回车键继续下一题...")
-    
-    # 展示答题结果
-    print(f"\n" + "="*50)
-    print(f"        随机答题完成！")
-    print(f"答题总数：{num}题")
-    print(f"正确数量：{correct_count}题")
-    print(f"正确率：{correct_count/num*100:.1f}%")
-    print("="*50)
-
-def run_simulate_test():
-    """运行模拟测试模式（限时60分钟，总分100分）"""
-    simulate_questions = get_simulate_test_questions()
-    total_score = 100
-    score_per_question = total_score / len(simulate_questions)
-    print(f"\n" + "="*50)
-    print("        模拟测试（限时60分钟，总分100分）")
-    print(f"题目数量：{len(simulate_questions)}题，每题{score_per_question:.1f}分")
-    print("="*50)
-    input("按下回车键开始测试...（请在60分钟内完成）")
-    
-    correct_count = 0
-    for i, (category, question) in enumerate(simulate_questions, 1):
-        print(f"\n" + "-"*20 + f"第{i}题" + "-"*20)
-        is_correct, user_ans = answer_question(category, question)
-        if is_correct:
-            correct_count += 1
-        
-        # 记录答题结果
-        record = {
-            "question_id": question["id"],
-            "category": category,
-            "user_answer": user_ans,
-            "is_correct": is_correct,
-            "answer_time": "2024-xx-xx xx:xx",
-            "is_simulate_test": True
+        // 显示分类菜单
+        function showCategoryMenu() {
+            document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4').parentElement.classList.add('hidden');
+            document.getElementById('categoryMenu').classList.remove('hidden');
         }
-        user_data["answer_records"].append(record)
-        save_user_data()
         
-        if i < len(simulate_questions):
-            input("按下回车键继续下一题...")
-    
-    # 计算得分并展示结果
-    final_score = correct_count * score_per_question
-    print(f"\n" + "="*50)
-    print(f"        模拟测试完成！")
-    print(f"答题总数：{len(simulate_questions)}题")
-    print(f"正确数量：{correct_count}题")
-    print(f"最终得分：{final_score:.1f}分（满分100分）")
-    print(f"等级评价：{'优秀' if final_score >= 90 else '良好' if final_score >= 80 else '合格' if final_score >= 60 else '不合格'}")
-    print("="*50)
-
-def display_answer_records():
-    """展示用户答题记录"""
-    records = user_data["answer_records"]
-    if not records:
-        print("\n您暂无答题记录，请先进行答题！")
-        return
-    
-    print(f"\n" + "="*50)
-    print(f"        我的答题记录（共{len(records)}条）")
-    print("="*50)
-    # 按答题时间倒序排列（模拟时间排序）
-    sorted_records = sorted(records, key=lambda x: x["answer_time"], reverse=True)
-    
-    for i, record in enumerate(sorted_records, 1):
-        correct_mark = "✅" if record["is_correct"] else "❌"
-        simulate_mark = "【模拟测试】" if record.get("is_simulate_test", False) else ""
-        print(f"{i}. {simulate_mark}{record['category']}")
-        print(f"   题目ID：{record['question_id']} | 我的答案：{record['user_answer']} | {correct_mark}")
-        print(f"   答题时间：{record['answer_time']}")
-        print("-"*30)
-
-def display_collected_questions():
-    """展示收藏题目"""
-    collected = user_data["collected_questions"]
-    if not collected:
-        print("\n您暂无收藏题目，请在答题时选择收藏！")
-        return
-    
-    print(f"\n" + "="*50)
-    print(f"        我的收藏题目（共{len(collected)}题）")
-    print("="*50)
-    for i, q in enumerate(collected, 1):
-        print(f"{i}. 【{q['category']}】")
-        print(f"   题目：{q['question']}")
-        print(f"   正确答案：{q['answer']}")
-        print(f"   依据：{q['basis']}")
-        print("-"*30)
-
-def main():
-    """程序主入口"""
-    load_user_data()
-    while True:
-        choice = display_main_menu()
-        if choice == "1":
-            run_special_answer()
-        elif choice == "2":
-            run_random_answer()
-        elif choice == "3":
-            run_simulate_test()
-        elif choice == "4":
-            display_answer_records()
-        elif choice == "5":
-            display_collected_questions()
-        elif choice == "6":
-            print("\n感谢使用民进会史知识答题程序，再见！")
-            save_user_data()
-            break
-        else:
-            print("输入无效，请重新选择（1-6）！")
-
-if __name__ == "__main__":
-    main()
+        // 隐藏分类菜单
+        function hideCategoryMenu() {
+            document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4').parentElement.classList.remove('hidden');
+            document.getElementById('categoryMenu').classList.add('hidden');
+        }
+        
+        // 开始分类答题
+        function startCategoryQuiz(category) {
+            currentQuiz = [...QUESTION_BANK[category]];
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            currentQuestionType = getQuestionType(category);
+            
+            document.getElementById('categoryMenu').classList.add('hidden');
+            document.getElementById('quizArea').classList.remove('hidden');
+            document.getElementById('quizTitle').textContent = category;
+            
+            showCurrentQuestion();
+        }
+        
+        // 获取题目类型（判断/单选/多选）
+        function getQuestionType(category) {
+            if (category.includes('判断')) return 'judgment';
+            if (category.includes('单选')) return 'single';
+            if (category.includes('多选')) return 'multiple';
+            return 'unknown';
+        }
+        
+        // 开始随机答题
+        function startRandomQuiz() {
+            // 从所有题库中随机抽取20题
+            currentQuiz = [];
+            const allQuestions = [];
+            
+            // 收集所有题目
+            for (const category in QUESTION_BANK) {
+                allQuestions.push(...QUESTION_BANK[category]);
+            }
+            
+            // 随机排序并取前20题
+            currentQuiz = allQuestions.sort(() => Math.random() - 0.5).slice(0, 30);
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            
+            document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4').parentElement.classList.add('hidden');
+            document.getElementById('quizArea').classList.remove('hidden');
+            document.getElementById('quizTitle').textContent = '随机答题';
+            
+            showCurrentQuestion();
+        }
+        
+        // 显示当前题目
+        function showCurrentQuestion() {
+            if (currentQuestionIndex >= currentQuiz.length) {
+                // 答题结束
+                finishQuiz();
+                return;
+            }
+            
+            const question = currentQuiz[currentQuestionIndex];
+            document.getElementById('questionCount').textContent = `第${currentQuestionIndex + 1}/${currentQuiz.length}题`;
+            document.getElementById('questionContent').textContent = question.question;
+            
+            // 根据题目类型设置当前题型
+            if (!currentQuestionType) {
+                if (question.options.length === 2 && (question.options[0] === '正确' && question.options[1] === '错误')) {
+                    currentQuestionType = 'judgment';
+                } else if (question.options.length > 2 && question.answer.includes('、')) {
+                    currentQuestionType = 'multiple';
+                } else {
+                    currentQuestionType = 'single';
+                }
+            }
+            
+            // 渲染选项
+            const optionsArea = document.getElementById('optionsArea');
+            optionsArea.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                
+                // 根据题型使用不同的input类型
+                if (currentQuestionType === 'multiple') {
+                    // 多选题使用复选框
+                    optionElement.innerHTML = `
+                        <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition">
+                            <input type="checkbox" name="option" value="${option}" class="mr-3 h-4 w-4 text-blue-600" 
+                                ${userAnswers[question.id] && userAnswers[question.id].includes(option) ? 'checked' : ''}>
+                            <span>${option}</span>
+                        </label>
+                    `;
+                } else {
+                    // 单选题和判断题使用单选按钮
+                    optionElement.innerHTML = `
+                        <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition">
+                            <input type="radio" name="option" value="${option}" class="mr-3 h-4 w-4 text-blue-600" 
+                                ${userAnswers[question.id] === option ? 'checked' : ''}>
+                            <span>${option}</span>
+                        </label>
+                    `;
+                }
+                
+                optionsArea.appendChild(optionElement);
+            });
+            
+            // 重置反馈区域
+            const feedbackArea = document.getElementById('feedbackArea');
+            feedbackArea.classList.add('hidden');
+            
+            // 控制上一题按钮显示
+            document.getElementById('prevBtn').classList.toggle('hidden', currentQuestionIndex === 0);
+            
+            // 更新提交按钮文本
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentQuestionIndex === currentQuiz.length - 1) {
+                nextBtn.innerHTML = '完成答题<i class="fa fa-check ml-1"></i>';
+            } else {
+                nextBtn.innerHTML = '提交答案<i class="fa fa-check ml-1"></i>';
+            }
+            
+            // 更新收藏按钮状态
+            const collectBtn = document.getElementById('collectBtn');
+            const isCollected = collectedQuestions.some(q => q.id === question.id);
+            collectBtn.innerHTML = isCollected 
+                ? '<i class="fa fa-star mr-1"></i>取消收藏' 
+                : '<i class="fa fa-star-o mr-1"></i>收藏此题';
+        }
+        
+        // 提交答案
+        function submitAnswer() {
+            const question = currentQuiz[currentQuestionIndex];
+            let userAnswer;
+            
+            // 根据题型获取用户答案
+            if (currentQuestionType === 'multiple') {
+                // 多选题获取所有选中的选项
+                const checkedOptions = Array.from(document.querySelectorAll('input[name="option"]:checked'))
+                    .map(input => input.value);
+                userAnswer = checkedOptions.join('、');
+            } else {
+                // 单选题和判断题获取选中的选项
+                const selectedOption = document.querySelector('input[name="option"]:checked');
+                if (!selectedOption) {
+                    alert('请选择答案后再提交');
+                    return;
+                }
+                userAnswer = selectedOption.value;
+            }
+            
+            // 保存用户答案
+            userAnswers[question.id] = userAnswer;
+            
+            // 判断答案是否正确
+            const isCorrect = userAnswer === question.answer;
+            
+            // 显示反馈
+            const feedbackArea = document.getElementById('feedbackArea');
+            feedbackArea.classList.remove('hidden');
+            
+            if (isCorrect) {
+                feedbackArea.className = 'mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-800';
+                feedbackArea.innerHTML = `
+                    <div class="flex items-start">
+                        <i class="fa fa-check-circle text-green-500 mt-1 mr-2"></i>
+                        <div>
+                            <p class="font-medium">回答正确！</p>
+                            <p class="mt-2 text-sm">${question.basis}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                feedbackArea.className = 'mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-800';
+                feedbackArea.innerHTML = `
+                    <div class="flex items-start">
+                        <i class="fa fa-times-circle text-red-500 mt-1 mr-2"></i>
+                        <div>
+                            <p class="font-medium">回答错误</p>
+                            <p class="mt-1">正确答案：${question.answer}</p>
+                            <p class="mt-2 text-sm">${question.basis}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 记录答题结果（去重）
+            const existingRecordIndex = answerRecords.findIndex(r => r.questionId === question.id);
+            if (existingRecordIndex >= 0) {
+                answerRecords.splice(existingRecordIndex, 1);
+            }
+            
+            answerRecords.push({
+                questionId: question.id,
+                question: question.question,
+                userAnswer: userAnswer,
+                correctAnswer: question.answer,
+                isCorrect: isCorrect,
+                timestamp: new Date().toISOString(),
+                category: document.getElementById('quizTitle').textContent
+            });
+            
+            // 保存到本地存储
+            localStorage.setItem('answerRecords', JSON.stringify(answerRecords));
+            updateStats();
+            
+            // 禁用选项
+            document.querySelectorAll('input[name="option"]').forEach(input => {
+                input.disabled = true;
+            });
+            
+            // 更改按钮文本为下一题
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentQuestionIndex === currentQuiz.length - 1) {
+                nextBtn.innerHTML = '查看结果<i class="fa fa-arrow-right ml-1"></i>';
+                nextBtn.onclick = finishQuiz;
+            } else {
+                nextBtn.innerHTML = '下一题<i class="fa fa-arrow-right ml-1"></i>';
+                nextBtn.onclick = nextQuestion;
+            }
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            currentQuestionIndex++;
+            // 重置按钮点击事件
+            document.getElementById('nextBtn').onclick = submitAnswer;
+            showCurrentQuestion();
+        }
+        
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                // 重置按钮点击事件
+                document.getElementById('nextBtn').onclick = submitAnswer;
+                showCurrentQuestion();
+            }
+        }
+        
+        // 完成答题
+        function finishQuiz() {
+            // 计算正确率
+            const correctCount = currentQuiz.filter((q, index) => {
+                return userAnswers[q.id] === q.answer;
+            }).length;
+            
+            const accuracy = Math.round((correctCount / currentQuiz.length) * 100);
+            
+            // 显示结果
+            document.getElementById('questionContent').innerHTML = `
+                <div class="text-center py-6">
+                    <h3 class="text-xl font-bold mb-4">答题完成！</h3>
+                    <p class="mb-2">总题数：${currentQuiz.length}题</p>
+                    <p class="mb-2">正确：${correctCount}题</p>
+                    <p class="mb-4">正确率：${accuracy}%</p>
+                    <button onclick="returnToMainMenu()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded transition">
+                        返回主菜单
+                    </button>
+                </div>
+            `;
+            
+            // 清空选项和反馈
+            document.getElementById('optionsArea').innerHTML = '';
+            document.getElementById('feedbackArea').classList.add('hidden');
+            
+            // 隐藏其他按钮
+            document.getElementById('prevBtn').classList.add('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('collectBtn').classList.add('hidden');
+        }
+        
+        // 收藏题目
+        function collectQuestion() {
+            const question = currentQuiz[currentQuestionIndex];
+            const index = collectedQuestions.findIndex(q => q.id === question.id);
+            
+            if (index >= 0) {
+                // 取消收藏
+                collectedQuestions.splice(index, 1);
+                alert('已取消收藏');
+            } else {
+                // 添加收藏
+                collectedQuestions.push({...question});
+                alert('收藏成功');
+            }
+            
+            // 保存到本地存储
+            localStorage.setItem('collectedQuestions', JSON.stringify(collectedQuestions));
+            updateStats();
+            showCurrentQuestion(); // 更新按钮状态
+        }
+        
+        // 查看答题记录
+        function showAnswerRecords() {
+            document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4').parentElement.classList.add('hidden');
+            document.getElementById('recordArea').classList.remove('hidden');
+            document.getElementById('recordTitle').textContent = '答题记录';
+            document.getElementById('recordIcon').className = 'fa fa-history mr-2 text-purple-600';
+            
+            renderRecords(answerRecords);
+        }
+        
+        // 查看收藏题目
+        function showCollectedQuestions() {
+            document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4').parentElement.classList.add('hidden');
+            document.getElementById('recordArea').classList.remove('hidden');
+            document.getElementById('recordTitle').textContent = '收藏题目';
+            document.getElementById('recordIcon').className = 'fa fa-star mr-2 text-orange-600';
+            
+            // 转换收藏题目为记录格式以便复用渲染函数
+            const collectedAsRecords = collectedQuestions.map(q => ({
+                questionId: q.id,
+                question: q.question,
+                userAnswer: '',
+                correctAnswer: q.answer,
+                isCorrect: null,
+                timestamp: '',
+                category: getCategoryByQuestionId(q.id)
+            }));
+            
+            renderRecords(collectedAsRecords);
+        }
+        
+        // 根据题目ID获取分类
+        function getCategoryByQuestionId(id) {
+            for (const category in QUESTION_BANK) {
+                const found = QUESTION_BANK[category].find(q => q.id === id);
+                if (found) return category;
+            }
+            return '未知分类';
+        }
+        
+        // 渲染记录
+        function renderRecords(records) {
+            const recordContent = document.getElementById('recordContent');
+            
+            if (records.length === 0) {
+                recordContent.innerHTML = '<p class="text-center py-6 text-gray-500">暂无记录</p>';
+                return;
+            }
+            
+            // 按时间倒序排列（最新的在前）
+            const sortedRecords = [...records].sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+            
+            let html = '<div class="space-y-4">';
+            
+            sortedRecords.forEach(record => {
+                let statusClass = '';
+                let statusText = '';
+                
+                if (record.isCorrect === true) {
+                    statusClass = 'bg-green-50 text-green-800 border-green-200';
+                    statusText = '正确';
+                } else if (record.isCorrect === false) {
+                    statusClass = 'bg-red-50 text-red-800 border-red-200';
+                    statusText = '错误';
+                } else {
+                    statusClass = 'bg-gray-50 text-gray-800 border-gray-200';
+                    statusText = '收藏';
+                }
+                
+                html += `
+                    <div class="${statusClass} p-4 rounded-lg border">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-sm font-medium">${record.category}</span>
+                            <span class="text-xs px-2 py-1 rounded-full ${record.isCorrect === true ? 'bg-green-100 text-green-800' : 
+                                                               record.isCorrect === false ? 'bg-red-100 text-red-800' : 
+                                                               'bg-orange-100 text-orange-800'}">${statusText}</span>
+                        </div>
+                        <p class="mb-2">${record.question}</p>
+                        <div class="text-sm">
+                            <p class="mb-1"><span class="text-gray-500">正确答案：</span>${record.correctAnswer}</p>
+                            ${record.userAnswer ? `<p><span class="text-gray-500">你的答案：</span>${record.userAnswer}</p>` : ''}
+                        </div>
+                        ${record.timestamp ? `<p class="mt-2 text-xs text-gray-500">${new Date(record.timestamp).toLocaleString()}</p>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            recordContent.innerHTML = html;
+        }
+        
+        // 筛选记录
+        function filterRecords() {
+            const filter = document.getElementById('recordFilter').value;
+            const searchTerm = document.getElementById('recordSearch').value.toLowerCase();
+            
+            let filteredRecords;
+            
+            // 判断当前显示的是答题记录还是收藏题目
+            if (document.getElementById('recordTitle').textContent === '答题记录') {
+                filteredRecords = answerRecords.filter(record => {
+                    // 应用筛选条件
+                    const matchesFilter = filter === 'all' || 
+                                         (filter === 'correct' && record.isCorrect) || 
+                                         (filter === 'incorrect' && !record.isCorrect);
+                    
+                    // 应用搜索条件
+                    const matchesSearch = !searchTerm || 
+                                         record.question.toLowerCase().includes(searchTerm) ||
+                                         record.category.toLowerCase().includes(searchTerm);
+                    
+                    return matchesFilter && matchesSearch;
+                });
+            } else {
+                // 收藏题目筛选
+                filteredRecords = collectedQuestions.filter(q => {
+                    return !searchTerm || q.question.toLowerCase().includes(searchTerm);
+                }).map(q => ({
+                    questionId: q.id,
+                    question: q.question,
+                    userAnswer: '',
+                    correctAnswer: q.answer,
+                    isCorrect: null,
+                    timestamp: '',
+                    category: getCategoryByQuestionId(q.id)
+                }));
+            }
+            
+            renderRecords(filteredRecords);
+        }
+        
+        // 隐藏记录区域
+        function hideRecordArea() {
+            document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4').parentElement.classList.remove('hidden');
+            document.getElementById('recordArea').classList.add('hidden');
+        }
+        
+        // 返回主菜单
+        function returnToMainMenu() {
+            document.getElementById('quizArea').classList.add('hidden');
+            document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.gap-4').parentElement.classList.remove('hidden');
+            currentQuestionType = ''; // 重置题型
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = init;
+    </script>
+</body>
+</html>
